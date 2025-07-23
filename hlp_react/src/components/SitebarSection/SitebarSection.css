@@ -1,0 +1,27 @@
+/*  ----------------- sitebar -------------------  */
+
+.advertising {
+    min-height: 300px;
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    flex-direction: column;
+    text-align: center;
+}
+
+.star_h1 {
+    text-align: center;
+}
+
+.star_h1 h1 {
+    font-size: 18px;
+}
+
+.star_item_h2 {
+    font-size: 14px;
+    font-weight: normal;
+}
+
+/*  ----------------- /sitebar -------------------  */

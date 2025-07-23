@@ -98,7 +98,7 @@ export default function Header() {
                     </nav>
                 </div>
 
-                <div class="col col-lg-2 d-flex align-items-center justify-content-evenly order-3 header_icons header_link">
+                <div class="col col-lg-2 d-flex align-items-center justify-content-center order-3 header_icons header_link">
 
                     <button type="button" class="btn header_search" data-bs-toggle="modal"
                             data-bs-target="#searchModal" title="Поиск">
