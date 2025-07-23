@@ -1,0 +1,64 @@
+.header {
+    background: #212020FF;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, .3);
+    padding: 1rem 0;
+    transition: all .3s;
+}
+
+.header_search,
+.header_link a {
+    color: #c5d2d9;
+    transition: all .3s;
+    text-decoration: none;
+}
+
+
+.header_search:hover,
+.header_link a:hover {
+    color: #fff;
+}
+
+.header_login div{
+    width: 35px;
+    height: 35px;
+}
+
+/***************/
+
+.text-underlined{
+  position: relative;
+  overflow: hidden;
+
+  will-change: color;
+  transition: color .25s ease-out;
+}
+
+.text-underlined::before,
+.text-underlined::after{
+  content: "";
+  width: 0;
+  height: 3px;
+  background-color: var(--textUnderlinedLineColor, currentColor);
+
+  will-change: width;
+  transition: width .1s ease-out;
+
+  position: absolute;
+  bottom: 0;
+}
+
+.text-underlined::before{
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.text-underlined::after{
+  right: 50%;
+  transform: translateX(50%);
+}
+
+.text-underlined:hover::before,
+.text-underlined:hover::after{
+  width: 100%;
+  transition-duration: .2s;
+}

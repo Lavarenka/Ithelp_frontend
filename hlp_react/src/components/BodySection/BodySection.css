@@ -1,0 +1,91 @@
+/*  ----------------- body -------------------  */
+.card_img {
+    width: 30px;
+    height: 30px;
+}
+
+.card_time,
+.card_login {
+    font-size: 15px;
+}
+
+.card_login {
+    font-weight: bold;
+}
+
+.card_title h2 {
+    font-size: 18px;
+}
+
+.card_description {
+    text-indent: 20px;
+}
+
+.card_time {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.card_link a {
+    color: var(--title-color);
+    transition: all .3s;
+    text-decoration: none;
+}
+
+.card_link a:hover {
+    color: #575353;
+}
+
+.body {
+    overflow: hidden;
+    flex: 1 1 auto;
+}
+
+.body_row {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.pagination_ {
+    display: flex;
+    text-decoration: none;
+    list-style: none;
+}
+
+
+.pagination_ .page-link {
+    font-size: 20px;
+
+}
+
+
+/*  ----------------- /body -------------------  */
+
+
+/*  ----------------- sitebar -------------------  */
+
+.advertising {
+    min-height: 300px;
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    flex-direction: column;
+    text-align: center;
+}
+
+.star_h1 {
+    text-align: center;
+}
+
+.star_h1 h1 {
+    font-size: 18px;
+}
+
+.star_item_h2 {
+    font-size: 14px;
+    font-weight: normal;
+}
+
+/*  ----------------- /sitebar -------------------  */
