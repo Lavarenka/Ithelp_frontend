@@ -39,6 +39,30 @@
     transition: font-size .3s ease;
 }
 
+/* Лого с эффектом печатающегося текста (см. TypingLogo.jsx) —
+   моноширинный шрифт, чтобы ширина буквы не "прыгала" во время набора,
+   и фиксированная ширина под самый длинный вариант текста ("it_hlp"),
+   чтобы соседние элементы шапки не дёргались при стирании/наборе. */
+.typing-logo {
+    font-family: "Courier New", Courier, monospace;
+    display: inline-block;
+    min-width: 6ch;
+}
+
+.typing-logo_cursor {
+    display: inline-block;
+    animation: typing-logo-blink 1s step-end infinite;
+}
+
+@keyframes typing-logo-blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
 /* На узких экранах логотип, меню-бургер и иконки делят одну строку —
    уменьшаем логотип, чтобы всё помещалось без переноса */
 @media (max-width: 575.98px) {

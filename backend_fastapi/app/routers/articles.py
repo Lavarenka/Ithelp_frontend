@@ -23,6 +23,22 @@ def list_articles(skip: int = 0, limit: int = 10, db: Session = Depends(get_db))
     return ArticleListOut(items=items, total=total)
 
 
+@router.get("/popular/", response_model=list[ArticleOut])
+def list_popular_articles(limit: int = 4, db: Session = Depends(get_db)):
+    """Самые просматриваемые статьи — для блока "Популярные статьи" в
+    сайдбаре. Важно: этот путь идёт ДО "/{article_id}" в файле, иначе
+    FastAPI попытался бы распарсить "popular" как article_id и упал бы
+    на валидации. Сам список не увеличивает просмотры — в отличие от
+    get_article ниже, здесь только чтение."""
+    stmt = (
+        select(Article)
+        .options(selectinload(Article.tags))
+        .order_by(Article.views.desc(), Article.created_at.desc())
+        .limit(limit)
+    )
+    return db.execute(stmt).scalars().all()
+
+
 @router.get("/{article_id}", response_model=ArticleOut)
 def get_article(article_id: int, db: Session = Depends(get_db)):
     stmt = (

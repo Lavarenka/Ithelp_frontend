@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Header.css";
 import { API_BASE_URL } from "../../api";
+import TypingLogo from "./TypingLogo";
 
 const COMPACT_SCROLL_THRESHOLD = 40;
 
@@ -91,7 +92,7 @@ export default function Header() {
             <div className="row header_row align-items-center">
                 <div className="col-4 col-lg-2 d-flex align-items-center justify-content-center logo header_link order-2 order-lg-1">
                     <h1>
-                        <Link to="/">it_hlp</Link>
+                        <Link to="/"><TypingLogo /></Link>
                     </h1>
                 </div>
 
