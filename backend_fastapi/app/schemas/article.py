@@ -18,3 +18,11 @@ class ArticleOut(ArticleBase):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ArticleListOut(BaseModel):
+    """Список статей + сколько их всего — нужно фронту, чтобы понять,
+    когда останавливать подгрузку по скроллу (infinite scroll)."""
+
+    items: list[ArticleOut]
+    total: int

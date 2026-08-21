@@ -60,42 +60,18 @@ export default function Header() {
                                                 Frontend
                                             </a>
                                             <ul className="dropdown-menu">
-                                                <li><a className="dropdown-item" href="#">Action</a></li>
-                                                <li><a className="dropdown-item" href="#">Another action</a></li>
+                                                <li><a className="dropdown-item" href="#">Bootstrap</a></li>
+                                                <li><a className="dropdown-item" href="#">css</a></li>
                                                 <li>
                                                     {/* <hr className="dropdown-divider"> */}
                                                 </li>
-                                                <li><a className="dropdown-item" href="#">Something else here</a></li>
+                                                <li><a className="dropdown-item" href="#">html</a></li>
                                             </ul>
                                         </li>
-                                        <li className="nav-item dropdown ">
-                                            <a className="nav-link dropdown-toggle text-underlined" href="#" role="button"
+                                                                                <li className="nav-item dropdown ">
+                                            <a className="nav-link dropdown-toggle text-underlined " href="#" role="button"
                                                data-bs-toggle="dropdown" aria-expanded="false">
-                                                Backend
-                                            </a>
-                                            <ul className="dropdown-menu">
-                                                <li className="nav-item dropend">
-                                                    <a className="dropdown-item dropdown-toggle" href="#" role="button"
-                                                       data-bs-toggle="dropdown"
-                                                       data-bs-auto-close="outside">Action</a>
-                                                    <ul className="dropdown-menu dropdown-menu-end">
-                                                        <li><a className="dropdown-item" href="#">Another action</a>
-                                                        </li>
-                                                        <li><a className="dropdown-item" href="#">Another action</a>
-                                                        </li>
-                                                    </ul>
-                                                </li>
-                                                <li><a className="dropdown-item" href="#">Another action</a></li>
-                                                <li>
-                                                    {/* <hr className="dropdown-divider"> */}
-                                                </li>
-                                                <li><a className="dropdown-item" href="#">Something else here</a></li>
-                                            </ul>
-                                        </li>
-                                        <li className="nav-item dropdown">
-                                            <a className="nav-link dropdown-toggle text-underlined" href="#" role="button"
-                                               data-bs-toggle="dropdown" aria-expanded="false">
-                                                Deploy
+                                                Frontend
                                             </a>
                                             <ul className="dropdown-menu">
                                                 <li><a className="dropdown-item" href="#">Action</a></li>
@@ -106,6 +82,9 @@ export default function Header() {
                                                 <li><a className="dropdown-item" href="#">Something else here</a></li>
                                             </ul>
                                         </li>
+                                        
+
+
                                     </ul>
                                 </div>
 

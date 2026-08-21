@@ -3,7 +3,7 @@ import "./SitebarSection.css";
 export default function Sitebar() {
   return (
     <>
-      <div className="col-lg-4 col-xl-3 d-none d-lg-block sitebar">
+      <div className="layout_sidebar sitebar">
           <div className="advertising mb-3">
             <span className="advertising_label">реклама</span>
             <p className="mb-0">обучение питонычу онлайн за 30 мин</p>

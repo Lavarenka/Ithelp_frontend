@@ -73,18 +73,13 @@
     line-height: 1.6;
 }
 
-.pagination_ {
-    display: flex;
-    text-decoration: none;
-    list-style: none;
+.scroll_sentinel {
+    min-height: 1px;
 }
 
-
-.pagination_ .page-link {
-    font-size: 20px;
-
+.body_state--inline {
+    padding: 1.5rem 1rem;
 }
-
 
 /*  ----------------- /body -------------------  */
 

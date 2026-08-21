@@ -25,6 +25,7 @@ body {
 }
 
 main.main {
+    width: 100%;
     max-width: 1400px;
     overflow: hidden;
     margin: 0 auto;
@@ -38,6 +39,52 @@ main.main {
 img {
     max-width: 100%;
     height: auto;
+}
+
+/* Замена Bootstrap .container для зоны "лента + сайдбар": Bootstrap .container
+   сам по себе ограничен не 100% родителя, а фиксированными max-width по
+   брейкпоинтам (960px, 1140px...), из-за чего он был у́же, чем main.main,
+   и весь блок "уезжал" к центру страницы. Здесь ширина растёт плавно,
+   без скачков, всегда занимая всё доступное пространство внутри main.main. */
+.page-container {
+    width: 100%;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+/* Раскладка "лента + сайдбар": свой CSS Grid вместо Bootstrap .row/.col-*,
+   чтобы ширина колонок не "плыла" в зависимости от того, что внутри —
+   пусто, ошибка или список статей. */
+.layout {
+    display: grid;
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+}
+
+.layout_main {
+    min-width: 0;
+}
+
+.layout_sidebar {
+    display: none;
+}
+
+@media (min-width: 992px) {
+    .layout {
+        grid-template-columns: minmax(0, 1fr) 320px;
+        column-gap: 2rem;
+    }
+
+    .layout_sidebar {
+        display: block;
+    }
+}
+
+@media (min-width: 1200px) {
+    .layout {
+        grid-template-columns: minmax(0, 1fr) 300px;
+    }
 }
 
 

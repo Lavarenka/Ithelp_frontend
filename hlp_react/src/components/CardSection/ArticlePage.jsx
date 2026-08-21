@@ -39,9 +39,9 @@ const ArticlePage = () => {
   }, [id]);
 
   return (
-    <div className="col-12 col-lg">
-      <div className="row body_row">
-        <div className="col-12 body article_page">
+    <div className="layout_main">
+      <div className="body_row">
+        <div className="body article_page">
           <Link to="/" className="article_back mb-3 d-inline-block">
             &laquo; Назад к статьям
           </Link>

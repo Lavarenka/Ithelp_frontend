@@ -12,8 +12,8 @@ function App() {
       <Header />
 
       <main className="main">
-        <div className="container">
-          <div className="row">
+        <div className="page-container">
+          <div className="layout">
             <Routes>
               <Route path="/" element={<BodySection />} />
               <Route path="/articles/:id" element={<ArticlePage />} />
