@@ -2,7 +2,16 @@
     background: #212020FF;
     box-shadow: 0 10px 10px rgba(0, 0, 0, .3);
     padding: 1rem 0;
-    transition: all .3s;
+    transition: padding .3s ease;
+}
+
+/* Компактный режим шапки — включается по классу при прокрутке вниз (см. HeaderSection.jsx) */
+.header--compact {
+    padding: 0.4rem 0;
+}
+
+.header--compact .logo h1 {
+    font-size: 1.3rem;
 }
 
 .header_search,
@@ -21,6 +30,25 @@
 .header_login div{
     width: 35px;
     height: 35px;
+}
+
+.logo h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    white-space: nowrap;
+    transition: font-size .3s ease;
+}
+
+/* На узких экранах логотип, меню-бургер и иконки делят одну строку —
+   уменьшаем логотип, чтобы всё помещалось без переноса */
+@media (max-width: 575.98px) {
+    .logo h1 {
+        font-size: 1.1rem;
+    }
+
+    .header_icons .header_search {
+        padding: 0.375rem 0.5rem;
+    }
 }
 
 /***************/

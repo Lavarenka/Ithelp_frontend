@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { API_BASE_URL } from "../../api";
 
 const ArticlePage = () => {
@@ -38,19 +38,25 @@ const ArticlePage = () => {
     };
   }, [id]);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!article) return <div>Article not found</div>;
-
   return (
-    <div className="col">
-      <div className="container-fluid h-100 ">
-        <div className="row body_row">
-          <div className="col-12 body">
-            <h1>{article.title}</h1>
+    <div className="col-12 col-lg">
+      <div className="row body_row">
+        <div className="col-12 body article_page">
+          <Link to="/" className="article_back mb-3 d-inline-block">
+            &laquo; Назад к статьям
+          </Link>
 
-            <p>{article.content}</p>
-          </div>
+          {loading && <p className="body_state">Загрузка статьи…</p>}
+          {error && <p className="body_state text-danger">{error}</p>}
+          {!loading && !error && article && (
+            <>
+              <h1>{article.title}</h1>
+              <p className="card_time mb-3">
+                Просмотров: {article.views ?? 0}
+              </p>
+              <p className="article_content">{article.content}</p>
+            </>
+          )}
         </div>
       </div>
     </div>

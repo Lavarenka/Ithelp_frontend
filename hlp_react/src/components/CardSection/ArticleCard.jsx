@@ -5,14 +5,14 @@ const ArticleCard = ({ article }) => {
     <div>
       <div className="body_item">
         <div className=" my-1 card_ ">
-          <div className="d-flex d-flex align-items-end card_item mb-1">
+          <div className="d-flex align-items-end card_item mb-1">
             <div className="card_img me-2">
               {/* <img src="assets/img/no-name.jpg" alt=""> */}
             </div>
             <div className="card_login me-2">admin</div>
             <div className="card_time">14 минут назад</div>
           </div>
-          <div className="d-flex mb-2">
+          <div className="d-flex card_tags mb-2">
             <div className="me-2">
               <i className="fa-brands fa-python fa-xl"></i>
             </div>
@@ -38,8 +38,8 @@ const ArticleCard = ({ article }) => {
           <div className="card_description">
             <p>{article.content}</p>
           </div>
-          <div className="d-flex justify-content-between">
-            <div className="d-flex ">
+          <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div className="d-flex flex-wrap">
               <div className="d-flex me-2 " title="Количество просмотров">
                 <div className="">
                   <i className="fa-regular fa-eye "></i>

@@ -1,12 +1,30 @@
-import './Header.css'
+import { useEffect, useState } from "react";
+import "./Header.css";
+
+const COMPACT_SCROLL_THRESHOLD = 40;
 
 export default function Header() {
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsCompact(window.scrollY > COMPACT_SCROLL_THRESHOLD);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <>
-       <header className="header  mb-4 sticky-top " id="header-nav">
-        <div className="container-fluid">
+       <header
+         className={`header mb-4 sticky-top ${isCompact ? "header--compact" : ""}`}
+         id="header-nav"
+       >
+        <div className="container">
             <div className="row header_row align-items-center">
-                <div className="col-4 col-lg-2 d-none d-sm-flex align-items-center justify-content-center logo d-flex  header_link order-2 order-lg-1">
+                <div className="col-4 col-lg-2 d-flex align-items-center justify-content-center logo header_link order-2 order-lg-1">
                     <h1>
                         <a href="#">it_hlp</a>
                     </h1>
@@ -109,11 +127,11 @@ export default function Header() {
                     </button>
 
 
-                </div> 
-            </div> 
+                </div>
+            </div>
         </div>
-    </header> 
-     
+    </header>
+
     </>
   );
 }

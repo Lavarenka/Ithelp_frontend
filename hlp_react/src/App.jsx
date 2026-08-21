@@ -8,11 +8,11 @@ import ArticlePage from "./components/CardSection/ArticlePage";
 
 function App() {
   return (
-    <>
+    <div className="wrapper">
       <Header />
 
       <main className="main">
-        <div className="container-fluid">
+        <div className="container">
           <div className="row">
             <Routes>
               <Route path="/" element={<BodySection />} />
@@ -23,7 +23,7 @@ function App() {
         </div>
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
 

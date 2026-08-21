@@ -1,14 +1,27 @@
 /*  ----------------- sitebar -------------------  */
 
+.sitebar {
+    padding-top: 1.5rem;
+}
+
 .advertising {
-    min-height: 300px;
-    border: 1px solid black;
+    min-height: 220px;
+    border: 1px dashed rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 0.5rem;
     padding: 10px;
     flex-direction: column;
     text-align: center;
+    color: rgba(0, 0, 0, 0.45);
+}
+
+.advertising_label {
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.05em;
 }
 
 .star_h1 {

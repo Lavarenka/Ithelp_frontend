@@ -3,15 +3,10 @@ import "./SitebarSection.css";
 export default function Sitebar() {
   return (
     <>
-      <div className="col-3 d-none d-lg-block sitebar">
-        <div className="container-fluid">
+      <div className="col-lg-4 col-xl-3 d-none d-lg-block sitebar">
           <div className="advertising mb-3">
-            <div className="">
-              <p>реклама</p>
-            </div>
-            <div className="">
-              <p>обучение питонычу онлайн за 30 мин</p>
-            </div>
+            <span className="advertising_label">реклама</span>
+            <p className="mb-0">обучение питонычу онлайн за 30 мин</p>
           </div>
           <div className="star">
             <div className="star_h1">
@@ -71,7 +66,6 @@ export default function Sitebar() {
               </div>
             </div>
           </div>
-        </div>
       </div>
     </>
   );
