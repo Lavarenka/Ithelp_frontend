@@ -59,6 +59,23 @@
     row-gap: 0.5rem;
 }
 
+.card_tag_link {
+    text-decoration: none;
+}
+
+.card_tag_link .badge {
+    transition: background-color .2s;
+}
+
+.card_tag_link:hover .badge {
+    background-color: var(--title-color) !important;
+}
+
+.tag_page_title {
+    font-size: 22px;
+    margin-bottom: 1rem;
+}
+
 .article_back {
     color: var(--title-color);
     text-decoration: none;

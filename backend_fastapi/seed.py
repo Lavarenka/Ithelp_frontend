@@ -1,8 +1,64 @@
-"""Наполняет БД тестовыми статьями. Запуск: python seed.py"""
+"""Наполняет БД тестовыми тегами и статьями. Запуск: python seed.py"""
 
 from app.database import SessionLocal, Base, engine
-from app.models import Article
+from app.models import Article, Tag
 
+# ---------------------------------------------------------------------------
+# Теги: вложенное дерево (родитель -> список дочерних). Это только стартовый
+# набор для проверки функциональности — дальше теги удобно редактировать
+# через API (POST /tags/) без изменений кода.
+# ---------------------------------------------------------------------------
+TAG_TREE = [
+    {
+        "name": "Frontend",
+        "slug": "frontend",
+        "children": [
+            {"name": "JavaScript", "slug": "javascript"},
+            {"name": "TypeScript", "slug": "typescript"},
+            {"name": "React", "slug": "react"},
+            {"name": "Vue", "slug": "vue"},
+            {"name": "CSS", "slug": "css"},
+            {"name": "HTML", "slug": "html"},
+            {"name": "Bootstrap", "slug": "bootstrap"},
+        ],
+    },
+    {
+        "name": "Backend",
+        "slug": "backend",
+        "children": [
+            {"name": "Python", "slug": "python"},
+            {"name": "Django", "slug": "django"},
+            {"name": "FastAPI", "slug": "fastapi"},
+            {"name": "SQL", "slug": "sql"},
+            {"name": "PostgreSQL", "slug": "postgresql"},
+        ],
+    },
+    {
+        "name": "Deploy",
+        "slug": "deploy",
+        "children": [
+            {"name": "Docker", "slug": "docker"},
+            {"name": "Kubernetes", "slug": "kubernetes"},
+            {"name": "Nginx", "slug": "nginx"},
+            {"name": "CI/CD", "slug": "cicd"},
+            {"name": "Git", "slug": "git"},
+        ],
+    },
+    {
+        "name": "Инженерная практика",
+        "slug": "engineering",
+        "children": [
+            {"name": "Алгоритмы", "slug": "algorithms"},
+            {"name": "Тестирование", "slug": "testing"},
+            {"name": "Архитектура", "slug": "architecture"},
+        ],
+    },
+]
+
+
+# ---------------------------------------------------------------------------
+# Статьи: каждая с набором тегов (по слагам из TAG_TREE выше).
+# ---------------------------------------------------------------------------
 SAMPLE_ARTICLES = [
     {
         "title": "Как создать карусель отзывов при помощи JavaScript",
@@ -11,6 +67,7 @@ SAMPLE_ARTICLES = [
             "без сторонних библиотек. Подходит для новичков, которые только "
             "начинают работать с DOM и событиями."
         ),
+        "tags": ["frontend", "javascript"],
     },
     {
         "title": "Создание проекта на Django",
@@ -18,6 +75,7 @@ SAMPLE_ARTICLES = [
             "С чего начать первый проект на Django: установка, структура "
             "приложения, модели, миграции и первый view."
         ),
+        "tags": ["backend", "python", "django"],
     },
     {
         "title": "Основы FastAPI за 10 минут",
@@ -25,6 +83,7 @@ SAMPLE_ARTICLES = [
             "Быстрый обзор FastAPI: роутинг, Pydantic-схемы, зависимости "
             "и автогенерируемая документация на /docs."
         ),
+        "tags": ["backend", "python", "fastapi"],
     },
     {
         "title": "Что такое REST API простыми словами",
@@ -32,6 +91,7 @@ SAMPLE_ARTICLES = [
             "Разбираем базовые принципы REST: методы GET/POST/PUT/DELETE, "
             "статус-коды, идемпотентность и типичные ошибки начинающих."
         ),
+        "tags": ["backend", "architecture"],
     },
     {
         "title": "React Hooks: useState и useEffect на примерах",
@@ -39,6 +99,7 @@ SAMPLE_ARTICLES = [
             "Показываем на практике, как работают самые частые хуки React, "
             "какие грабли встречаются и как их избежать в реальных проектах."
         ),
+        "tags": ["frontend", "javascript", "react"],
     },
     {
         "title": "SQL для начинающих: SELECT, JOIN, GROUP BY",
@@ -46,6 +107,7 @@ SAMPLE_ARTICLES = [
             "База данных — это не страшно. Разбираем самые нужные конструкции "
             "SQL на простых примерах с готовыми таблицами."
         ),
+        "tags": ["backend", "sql"],
     },
     {
         "title": "Git: как не бояться merge conflict",
@@ -53,6 +115,7 @@ SAMPLE_ARTICLES = [
             "Пошаговая инструкция по разрешению конфликтов слияния в Git, "
             "плюс несколько привычек, которые помогают их избегать."
         ),
+        "tags": ["deploy", "git"],
     },
     {
         "title": "CSS Grid vs Flexbox: когда что использовать",
@@ -60,6 +123,7 @@ SAMPLE_ARTICLES = [
             "Сравниваем два основных инструмента вёрстки в CSS и разбираем, "
             "для каких задач лучше подходит каждый из них."
         ),
+        "tags": ["frontend", "css"],
     },
     {
         "title": "Что такое Docker и зачем он нужен разработчику",
@@ -67,6 +131,7 @@ SAMPLE_ARTICLES = [
             "Контейнеризация на пальцах: чем Docker отличается от виртуальной "
             "машины и почему это упрощает разработку и деплой."
         ),
+        "tags": ["deploy", "docker"],
     },
     {
         "title": "Асинхронность в Python: async/await",
@@ -74,6 +139,7 @@ SAMPLE_ARTICLES = [
             "Разбираем, как работает asyncio, чем корутины отличаются от "
             "потоков и когда асинхронность действительно ускоряет код."
         ),
+        "tags": ["backend", "python"],
     },
     {
         "title": "TypeScript для тех, кто знает JavaScript",
@@ -81,6 +147,7 @@ SAMPLE_ARTICLES = [
             "Минимальный набор знаний, чтобы начать использовать TypeScript "
             "в существующем JS-проекте без переписывания всего с нуля."
         ),
+        "tags": ["frontend", "javascript", "typescript"],
     },
     {
         "title": "Как работает HTTP: от запроса до ответа",
@@ -88,6 +155,7 @@ SAMPLE_ARTICLES = [
             "Прослеживаем полный путь HTTP-запроса: DNS, TCP-соединение, "
             "заголовки, тело ответа и что происходит внутри браузера."
         ),
+        "tags": ["backend", "architecture"],
     },
     {
         "title": "PostgreSQL vs MySQL: что выбрать для проекта",
@@ -95,6 +163,7 @@ SAMPLE_ARTICLES = [
             "Сравниваем две популярные СУБД по типам данных, производительности "
             "и экосистеме — без холивара, только факты."
         ),
+        "tags": ["backend", "sql", "postgresql"],
     },
     {
         "title": "Основы алгоритмической сложности O(n)",
@@ -102,6 +171,7 @@ SAMPLE_ARTICLES = [
             "Объясняем нотацию О-большое на простых примерах, чтобы "
             "перестать бояться вопросов про сложность алгоритмов на собеседованиях."
         ),
+        "tags": ["engineering", "algorithms"],
     },
     {
         "title": "Как настроить CI/CD с нуля на GitHub Actions",
@@ -109,6 +179,7 @@ SAMPLE_ARTICLES = [
             "Простой пример пайплайна: тесты при каждом пуше и автоматический "
             "деплой при мерже в main."
         ),
+        "tags": ["deploy", "cicd", "git"],
     },
     {
         "title": "Что такое SOLID и зачем следовать этим принципам",
@@ -116,6 +187,7 @@ SAMPLE_ARTICLES = [
             "Разбираем пять принципов SOLID на живых примерах кода, "
             "без академической зауми."
         ),
+        "tags": ["engineering", "architecture"],
     },
     {
         "title": "Основы тестирования: unit, integration, e2e",
@@ -123,6 +195,7 @@ SAMPLE_ARTICLES = [
             "Чем отличаются разные уровни тестирования, зачем нужны все "
             "сразу и с какого начать, если тестов в проекте пока нет."
         ),
+        "tags": ["engineering", "testing"],
     },
     {
         "title": "Vite вместо Webpack: стоит ли переезжать",
@@ -130,6 +203,7 @@ SAMPLE_ARTICLES = [
             "Сравниваем скорость сборки, конфигурацию и экосистему плагинов "
             "двух популярных сборщиков фронтенд-проектов."
         ),
+        "tags": ["frontend", "javascript"],
     },
     {
         "title": "Что такое JWT и как работает авторизация по токену",
@@ -137,6 +211,7 @@ SAMPLE_ARTICLES = [
             "Разбираем структуру JSON Web Token, зачем нужна подпись и "
             "как не хранить токены там, где их легко украсть."
         ),
+        "tags": ["backend", "architecture"],
     },
     {
         "title": "Redux Toolkit: зачем он нужен, если есть useState",
@@ -144,6 +219,7 @@ SAMPLE_ARTICLES = [
             "Показываем, в какой момент проекту становится тесно с локальным "
             "состоянием компонентов и как Redux Toolkit упрощает жизнь."
         ),
+        "tags": ["frontend", "javascript", "react"],
     },
     {
         "title": "Основы Linux-терминала для разработчика",
@@ -151,6 +227,7 @@ SAMPLE_ARTICLES = [
             "Минимальный набор команд, без которых не обойтись: навигация "
             "по файловой системе, права доступа, процессы и потоки вывода."
         ),
+        "tags": ["deploy"],
     },
     {
         "title": "Что такое кэширование и зачем оно бэкенду",
@@ -158,6 +235,7 @@ SAMPLE_ARTICLES = [
             "От HTTP-кэша браузера до Redis: разбираем разные уровни "
             "кэширования и типичные ошибки, которые приводят к протухшим данным."
         ),
+        "tags": ["backend", "architecture"],
     },
     {
         "title": "Паттерн MVC простыми словами",
@@ -165,6 +243,7 @@ SAMPLE_ARTICLES = [
             "Модель, представление, контроллер — как это выглядит на практике "
             "в веб-фреймворках и почему не стоит пихать логику во view."
         ),
+        "tags": ["engineering", "architecture"],
     },
     {
         "title": "Как работает event loop в JavaScript",
@@ -172,6 +251,7 @@ SAMPLE_ARTICLES = [
             "Разбираем call stack, callback queue и microtasks на конкретных "
             "примерах с setTimeout и промисами."
         ),
+        "tags": ["frontend", "javascript"],
     },
     {
         "title": "Нормализация базы данных: 1NF, 2NF, 3NF",
@@ -179,6 +259,7 @@ SAMPLE_ARTICLES = [
             "Зачем вообще нормализовать таблицы и когда денормализация "
             "оправдана ради производительности."
         ),
+        "tags": ["backend", "sql"],
     },
     {
         "title": "Основы Nginx: конфиг для простого сайта",
@@ -186,6 +267,7 @@ SAMPLE_ARTICLES = [
             "Разбираем минимальный конфигурационный файл Nginx: server, "
             "location, proxy_pass и раздача статики."
         ),
+        "tags": ["deploy", "nginx"],
     },
     {
         "title": "Что такое WebSocket и чем он лучше polling",
@@ -193,6 +275,7 @@ SAMPLE_ARTICLES = [
             "Сравниваем способы получать обновления в реальном времени "
             "и разбираем простой пример чата на WebSocket."
         ),
+        "tags": ["backend", "architecture"],
     },
     {
         "title": "Чистый код: имена переменных и функций",
@@ -200,6 +283,7 @@ SAMPLE_ARTICLES = [
             "Простые правила именования, которые делают код читаемым "
             "даже без комментариев."
         ),
+        "tags": ["engineering"],
     },
     {
         "title": "Основы Kubernetes для тех, кто знает Docker",
@@ -207,6 +291,7 @@ SAMPLE_ARTICLES = [
             "Под, деплоймент, сервис — базовые понятия Kubernetes на простых "
             "аналогиях, без погружения в operator'ы и Helm."
         ),
+        "tags": ["deploy", "kubernetes", "docker"],
     },
     {
         "title": "Что такое рефакторинг и когда его делать",
@@ -214,6 +299,7 @@ SAMPLE_ARTICLES = [
             "Отличаем рефакторинг от переписывания с нуля и разбираем, "
             "как убедить руководителя выделить на это время."
         ),
+        "tags": ["engineering"],
     },
     {
         "title": "GraphQL против REST: когда что выбрать",
@@ -221,6 +307,7 @@ SAMPLE_ARTICLES = [
             "Сравниваем два подхода к API на примере одного и того же "
             "запроса данных и разбираем плюсы и минусы каждого."
         ),
+        "tags": ["backend", "architecture"],
     },
     {
         "title": "Основы регулярных выражений на практике",
@@ -228,6 +315,7 @@ SAMPLE_ARTICLES = [
             "Разбираем самые нужные конструкции regex на примерах: "
             "email, телефон, извлечение чисел из текста."
         ),
+        "tags": ["engineering"],
     },
     {
         "title": "Что такое design system и зачем она фронтенду",
@@ -235,6 +323,7 @@ SAMPLE_ARTICLES = [
             "Единая библиотека компонентов, токены дизайна и почему "
             "это экономит время команде, а не только дизайнеру."
         ),
+        "tags": ["frontend", "css"],
     },
     {
         "title": "Основы Vue 3 Composition API",
@@ -242,6 +331,7 @@ SAMPLE_ARTICLES = [
             "Сравниваем Options API и Composition API на живом примере "
             "и разбираем, когда стоит переходить на новый подход."
         ),
+        "tags": ["frontend", "javascript", "vue"],
     },
     {
         "title": "Что такое CORS и почему он вечно всех бесит",
@@ -249,6 +339,7 @@ SAMPLE_ARTICLES = [
             "Разбираем, зачем браузеры блокируют кросс-доменные запросы "
             "и как правильно настроить заголовки на сервере."
         ),
+        "tags": ["backend", "architecture"],
     },
     {
         "title": "Основы Elasticsearch: полнотекстовый поиск",
@@ -256,6 +347,7 @@ SAMPLE_ARTICLES = [
             "Индексы, инвертированный индекс и простой пример поиска "
             "по большому объёму текстовых данных."
         ),
+        "tags": ["backend"],
     },
     {
         "title": "Что такое feature flag и зачем он нужен",
@@ -263,6 +355,7 @@ SAMPLE_ARTICLES = [
             "Как включать функциональность для части пользователей "
             "без нового деплоя и постепенно раскатывать изменения."
         ),
+        "tags": ["deploy", "cicd"],
     },
     {
         "title": "Основы работы с Celery и очередями задач",
@@ -270,6 +363,7 @@ SAMPLE_ARTICLES = [
             "Зачем выносить долгие операции в фоновые задачи и как "
             "настроить простую очередь на Celery с Redis."
         ),
+        "tags": ["backend", "python"],
     },
     {
         "title": "Что такое code review и как его не бояться",
@@ -277,6 +371,7 @@ SAMPLE_ARTICLES = [
             "Как давать и принимать конструктивную обратную связь по коду "
             "без переходов на личности и бесконечных споров о стиле."
         ),
+        "tags": ["engineering", "git"],
     },
     {
         "title": "Основы работы с датами и часовыми поясами",
@@ -284,6 +379,7 @@ SAMPLE_ARTICLES = [
             "Почему UTC — это не опция, а обязательное правило, и какие "
             "баги возникают, если его игнорировать."
         ),
+        "tags": ["backend"],
     },
     {
         "title": "Что такое монорепозиторий и когда он оправдан",
@@ -291,6 +387,7 @@ SAMPLE_ARTICLES = [
             "Разбираем плюсы и минусы хранения нескольких проектов "
             "в одном репозитории на примере фронтенда и бэкенда."
         ),
+        "tags": ["deploy", "git", "architecture"],
     },
     {
         "title": "Основы работы с переменными окружения",
@@ -298,6 +395,7 @@ SAMPLE_ARTICLES = [
             "Как хранить конфигурацию и секреты отдельно от кода "
             "и не закоммитить пароль от базы данных по ошибке."
         ),
+        "tags": ["deploy"],
     },
     {
         "title": "Что такое rate limiting и как его реализовать",
@@ -305,6 +403,7 @@ SAMPLE_ARTICLES = [
             "Защищаем API от перегрузки: алгоритмы token bucket и "
             "sliding window на простых примерах."
         ),
+        "tags": ["backend", "algorithms"],
     },
     {
         "title": "Основы адаптивной вёрстки: mobile-first",
@@ -312,6 +411,7 @@ SAMPLE_ARTICLES = [
             "Почему стоит начинать вёрстку с мобильной версии и как "
             "media-запросы помогают не сломать десктоп."
         ),
+        "tags": ["frontend", "css", "html"],
     },
     {
         "title": "Что такое дерево компонентов в React",
@@ -319,6 +419,7 @@ SAMPLE_ARTICLES = [
             "Разбираем, как React строит дерево и почему это важно "
             "понимать для оптимизации перерисовок."
         ),
+        "tags": ["frontend", "react"],
     },
     {
         "title": "Основы работы с Webhooks",
@@ -326,6 +427,7 @@ SAMPLE_ARTICLES = [
             "Чем вебхуки отличаются от обычных API-запросов и как "
             "принять и проверить подпись входящего вебхука."
         ),
+        "tags": ["backend", "architecture"],
     },
     {
         "title": "Что такое технический долг и как с ним жить",
@@ -333,6 +435,7 @@ SAMPLE_ARTICLES = [
             "Технический долг — это не всегда плохо. Разбираем, когда "
             "его стоит брать осознанно, а когда он тормозит команду."
         ),
+        "tags": ["engineering"],
     },
     {
         "title": "Основы серверного рендеринга (SSR)",
@@ -340,6 +443,7 @@ SAMPLE_ARTICLES = [
             "Зачем нужен SSR, чем он отличается от CSR и SSG, и когда "
             "оправдано усложнение архитектуры ради него."
         ),
+        "tags": ["frontend", "architecture"],
     },
     {
         "title": "Что такое idempotency key в платёжных API",
@@ -347,25 +451,58 @@ SAMPLE_ARTICLES = [
             "Как избежать двойного списания денег при повторной "
             "отправке одного и того же запроса из-за сетевых сбоев."
         ),
+        "tags": ["backend", "architecture"],
     },
 ]
+
+
+def _seed_tags(db):
+    """Создаёт дерево тегов, если его ещё нет. Возвращает словарь slug -> Tag."""
+    existing = {tag.slug: tag for tag in db.query(Tag).all()}
+    if existing:
+        print(f"Теги уже есть в базе ({len(existing)} шт.), пропускаю создание тегов.")
+        return existing
+
+    slug_to_tag = {}
+
+    def create_branch(node, parent):
+        tag = Tag(name=node["name"], slug=node["slug"], parent=parent)
+        db.add(tag)
+        db.flush()  # чтобы получить tag.id для детей
+        slug_to_tag[node["slug"]] = tag
+        for child in node.get("children", []):
+            create_branch(child, tag)
+
+    for root in TAG_TREE:
+        create_branch(root, None)
+
+    db.commit()
+    print(f"Создано тегов: {len(slug_to_tag)}")
+    return slug_to_tag
 
 
 def seed():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        existing = db.query(Article).count()
-        if existing >= len(SAMPLE_ARTICLES):
-            print(f"В базе уже {existing} статей, пропускаю заполнение.")
+        slug_to_tag = _seed_tags(db)
+
+        existing_count = db.query(Article).count()
+        if existing_count >= len(SAMPLE_ARTICLES):
+            print(f"В базе уже {existing_count} статей, пропускаю заполнение статей.")
             return
-        # Добавляем только недостающие статьи, чтобы можно было безопасно
-        # перезапускать seed после того, как добавили новые темы в список.
-        to_add = SAMPLE_ARTICLES[existing:]
+
+        to_add = SAMPLE_ARTICLES[existing_count:]
         for data in to_add:
-            db.add(Article(**data))
+            tag_slugs = data.get("tags", [])
+            article = Article(title=data["title"], content=data["content"])
+            article.tags = [slug_to_tag[s] for s in tag_slugs if s in slug_to_tag]
+            db.add(article)
         db.commit()
-        print(f"Добавлено статей: {len(to_add)} (всего теперь: {existing + len(to_add)})")
+        print(
+            f"Добавлено статей: {len(to_add)} "
+            f"(всего теперь: {existing_count + len(to_add)})"
+        )
     finally:
         db.close()
 

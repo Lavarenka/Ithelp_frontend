@@ -38,6 +38,8 @@ const ArticlePage = () => {
     };
   }, [id]);
 
+  const tags = article?.tags ?? [];
+
   return (
     <div className="layout_main">
       <div className="body_row">
@@ -54,6 +56,17 @@ const ArticlePage = () => {
               <p className="card_time mb-3">
                 Просмотров: {article.views ?? 0}
               </p>
+              {tags.length > 0 && (
+                <div className="d-flex card_tags mb-3">
+                  {tags.map((tag) => (
+                    <div className="me-2" key={tag.id}>
+                      <Link to={`/tags/${tag.slug}`} className="card_tag_link">
+                        <span className="badge text-bg-secondary">{tag.name}</span>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              )}
               <p className="article_content">{article.content}</p>
             </>
           )}

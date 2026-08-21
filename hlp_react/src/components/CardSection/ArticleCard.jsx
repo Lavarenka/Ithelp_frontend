@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 
 const ArticleCard = ({ article }) => {
+  const tags = article.tags ?? [];
+
   return (
     <div>
       <div className="body_item">
@@ -12,23 +14,17 @@ const ArticleCard = ({ article }) => {
             <div className="card_login me-2">admin</div>
             <div className="card_time">14 минут назад</div>
           </div>
-          <div className="d-flex card_tags mb-2">
-            <div className="me-2">
-              <i className="fa-brands fa-python fa-xl"></i>
+          {tags.length > 0 && (
+            <div className="d-flex card_tags mb-2">
+              {tags.map((tag) => (
+                <div className="me-2" key={tag.id}>
+                  <Link to={`/tags/${tag.slug}`} className="card_tag_link">
+                    <span className="badge text-bg-secondary">{tag.name}</span>
+                  </Link>
+                </div>
+              ))}
             </div>
-            <div className="me-2">
-              <span className="badge text-bg-secondary">Frontend</span>
-            </div>
-            <div className="me-2">
-              <span className="badge text-bg-secondary">Bootstrap</span>
-            </div>
-            <div className="me-2">
-              <span className="badge text-bg-secondary">CSS</span>
-            </div>
-            <div className="me-2">
-              <span className="badge text-bg-secondary">HTML</span>
-            </div>
-          </div>
+          )}
           <div className="card_title ">
             <h2>
               <Link to={`/articles/${article.id}`}>{article.title}</Link>

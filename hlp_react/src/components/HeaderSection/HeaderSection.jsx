@@ -1,10 +1,54 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import "./Header.css";
+import { API_BASE_URL } from "../../api";
 
 const COMPACT_SCROLL_THRESHOLD = 40;
 
+// Один пункт меню: тег с (опционально) вложенными подтегами.
+// Клик по самому тегу — это ссылка на /tags/:slug (родительский тег покажет
+// статьи всех вложенных подтегов, это делает бэкенд). Стрелка/наведение
+// раскрывает список подтегов, если они есть.
+function TagMenuItem({ tag }) {
+  const hasChildren = tag.children && tag.children.length > 0;
+
+  if (!hasChildren) {
+    return (
+      <li className="nav-item">
+        <Link className="nav-link text-underlined" to={`/tags/${tag.slug}`}>
+          {tag.name}
+        </Link>
+      </li>
+    );
+  }
+
+  return (
+    <li className="nav-item dropdown">
+      <Link
+        className="nav-link dropdown-toggle text-underlined"
+        to={`/tags/${tag.slug}`}
+        role="button"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        {tag.name}
+      </Link>
+      <ul className="dropdown-menu">
+        {tag.children.map((child) => (
+          <li key={child.id}>
+            <Link className="dropdown-item" to={`/tags/${child.slug}`}>
+              {child.name}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </li>
+  );
+}
+
 export default function Header() {
   const [isCompact, setIsCompact] = useState(false);
+  const [tags, setTags] = useState([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,6 +58,27 @@ export default function Header() {
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchTags = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/tags/`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!cancelled) setTags(data);
+      } catch {
+        // Меню по тегам необязательно для базовой работы сайта —
+        // если бэкенд недоступен, молча оставляем список пустым.
+      }
+    };
+
+    fetchTags();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -26,7 +91,7 @@ export default function Header() {
             <div className="row header_row align-items-center">
                 <div className="col-4 col-lg-2 d-flex align-items-center justify-content-center logo header_link order-2 order-lg-1">
                     <h1>
-                        <a href="#">it_hlp</a>
+                        <Link to="/">it_hlp</Link>
                     </h1>
                 </div>
 
@@ -49,42 +114,14 @@ export default function Header() {
                                 <div className="offcanvas-body ">
                                     <ul className="navbar-nav ">
                                         <li className="nav-item">
-                                            <a className="nav-link text-underlined" aria-current="page" href="index.html">Главная</a>
+                                            <Link className="nav-link text-underlined" aria-current="page" to="/">Главная</Link>
                                         </li>
                                         <li className="nav-item">
                                             <a className="nav-link text-underlined" href="#">О нас</a>
                                         </li>
-                                        <li className="nav-item dropdown ">
-                                            <a className="nav-link dropdown-toggle text-underlined " href="#" role="button"
-                                               data-bs-toggle="dropdown" aria-expanded="false">
-                                                Frontend
-                                            </a>
-                                            <ul className="dropdown-menu">
-                                                <li><a className="dropdown-item" href="#">Bootstrap</a></li>
-                                                <li><a className="dropdown-item" href="#">css</a></li>
-                                                <li>
-                                                    {/* <hr className="dropdown-divider"> */}
-                                                </li>
-                                                <li><a className="dropdown-item" href="#">html</a></li>
-                                            </ul>
-                                        </li>
-                                                                                <li className="nav-item dropdown ">
-                                            <a className="nav-link dropdown-toggle text-underlined " href="#" role="button"
-                                               data-bs-toggle="dropdown" aria-expanded="false">
-                                                Frontend
-                                            </a>
-                                            <ul className="dropdown-menu">
-                                                <li><a className="dropdown-item" href="#">Action</a></li>
-                                                <li><a className="dropdown-item" href="#">Another action</a></li>
-                                                <li>
-                                                    {/* <hr className="dropdown-divider"> */}
-                                                </li>
-                                                <li><a className="dropdown-item" href="#">Something else here</a></li>
-                                            </ul>
-                                        </li>
-                                        
-
-
+                                        {tags.map((tag) => (
+                                          <TagMenuItem key={tag.id} tag={tag} />
+                                        ))}
                                     </ul>
                                 </div>
 

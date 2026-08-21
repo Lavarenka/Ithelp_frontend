@@ -5,6 +5,7 @@ import Footer from "./components/FooterSection/FooterSection";
 
 import { Routes, Route } from "react-router-dom";
 import ArticlePage from "./components/CardSection/ArticlePage";
+import TagPage from "./components/TagPage/TagPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
             <Routes>
               <Route path="/" element={<BodySection />} />
               <Route path="/articles/:id" element={<ArticlePage />} />
+              <Route path="/tags/:slug" element={<TagPage />} />
             </Routes>
             <Sitebar />
           </div>

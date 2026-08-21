@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.tag import TagOut
+
 
 class ArticleBase(BaseModel):
     title: str = Field(min_length=1, max_length=200)
@@ -9,13 +11,15 @@ class ArticleBase(BaseModel):
 
 
 class ArticleCreate(ArticleBase):
-    pass
+    # Список id уже существующих тегов, которые нужно привязать к статье при создании.
+    tag_ids: list[int] = []
 
 
 class ArticleOut(ArticleBase):
     id: int
     views: int
     created_at: datetime
+    tags: list[TagOut] = []
 
     model_config = ConfigDict(from_attributes=True)
 
