@@ -1,0 +1,38 @@
+# ==== Backend (FastAPI / Python) ====
+backend_fastapi/venv/
+backend_fastapi/**/__pycache__/
+backend_fastapi/**/*.pyc
+backend_fastapi/.env
+backend_fastapi/hlp.db
+backend_fastapi/*.db
+backend_fastapi/.pytest_cache/
+backend_fastapi/*.egg-info/
+
+# ==== Frontend (React / Vite) ====
+hlp_react/node_modules/
+hlp_react/dist/
+hlp_react/dist-ssr/
+hlp_react/*.local
+hlp_react/.env
+hlp_react/.env.local
+
+# Logs (both parts)
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==== Editor / OS ====
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

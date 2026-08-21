@@ -1,81 +1,83 @@
 import { useEffect, useState, useCallback } from "react";
 import "./BodySection.css";
-import ArticleCard from "../CardSection/ArticleCard"
-import axios from 'axios';
-
-
-
-
+import ArticleCard from "../CardSection/ArticleCard";
+import { API_BASE_URL } from "../../api";
 
 export default function BodySection() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [articles, setArticles] = useState([]);
 
-  const fetchUsers = useCallback(async () => {
+  const fetchArticles = useCallback(async () => {
     setLoading(true);
-    const response = await fetch(
-      "http://0.0.0.0:8000/articles/?skip=0&limit=10"
-    );
-    const articles = await response.json();
-    setArticles(articles);
-    setLoading(false);
+    setError(null);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/articles/?skip=0&limit=10`
+      );
+      if (!response.ok) {
+        throw new Error(`Ошибка запроса: ${response.status}`);
+      }
+      const data = await response.json();
+      setArticles(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    fetchArticles();
+  }, [fetchArticles]);
 
   return (
     <>
-      <div class="col">
-        <div class="container-fluid h-100 ">
-          <div class="row body_row">
-            <div class="col-12 body">
-
-
-           
-                {loading && <p>loading...</p>}
-                {!loading && (
-                 <div className="">
-                    {articles.map((article) => (
-                      <ArticleCard key={article.id} article={article} />
-                    ))}
-                  </div>
-                )}
-             
-
-
-
-
-
-
+      <div className="col">
+        <div className="container-fluid h-100 ">
+          <div className="row body_row">
+            <div className="col-12 body">
+              {loading && <p>loading...</p>}
+              {error && (
+                <p className="text-danger">
+                  Не удалось загрузить статьи: {error}
+                </p>
+              )}
+              {!loading && !error && (
+                <div>
+                  {articles.length === 0 && <p>Пока нет статей.</p>}
+                  {articles.map((article) => (
+                    <ArticleCard key={article.id} article={article} />
+                  ))}
+                </div>
+              )}
             </div>
-            <div class="paginate d-flex justify-content-center">
-              <div class="">
+            <div className="paginate d-flex justify-content-center">
+              <div className="">
                 <nav aria-label="Page navigation example">
-                  <ul class="pagination_">
-                    <li class="page-item me-2">
-                      <a class="page-link" href="#" aria-label="Previous">
+                  <ul className="pagination_">
+                    <li className="page-item me-2">
+                      <a className="page-link" href="#" aria-label="Previous">
                         <span aria-hidden="true">&laquo;</span>
                       </a>
                     </li>
-                    <li class="page-item me-2">
-                      <a class="page-link" href="#">
+                    <li className="page-item me-2">
+                      <a className="page-link" href="#">
                         1
                       </a>
                     </li>
-                    <li class="page-item me-2">
-                      <a class="page-link" href="#">
+                    <li className="page-item me-2">
+                      <a className="page-link" href="#">
                         2
                       </a>
                     </li>
-                    <li class="page-item me-2">
-                      <a class="page-link" href="#">
+                    <li className="page-item me-2">
+                      <a className="page-link" href="#">
                         3
                       </a>
                     </li>
-                    <li class="page-item ">
-                      <a class="page-link" href="#" aria-label="Next">
+                    <li className="page-item ">
+                      <a className="page-link" href="#" aria-label="Next">
                         <span aria-hidden="true">&raquo;</span>
                       </a>
                     </li>

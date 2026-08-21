@@ -1,5 +1,3 @@
-import { useState } from "react";
-import viteLogo from "/vite.svg";
 import Header from "./components/HeaderSection/HeaderSection";
 import BodySection from "./components/BodySection/BodySection";
 import Sitebar from "./components/SitebarSection/SitebarSection";
@@ -13,9 +11,9 @@ function App() {
     <>
       <Header />
 
-      <main class="main">
-        <div class="container-fluid">
-          <div class="row">
+      <main className="main">
+        <div className="container-fluid">
+          <div className="row">
             <Routes>
               <Route path="/" element={<BodySection />} />
               <Route path="/articles/:id" element={<ArticlePage />} />

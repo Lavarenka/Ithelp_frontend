@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import { API_BASE_URL } from "../../api";
 
 const ArticlePage = () => {
   const { id } = useParams();
@@ -9,18 +9,33 @@ const ArticlePage = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchArticle = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await axios.get(`http://0.0.0.0:8000/articles/${id}`);
-        setArticle(response.data);
-        setLoading(false);
+        const response = await fetch(`${API_BASE_URL}/articles/${id}`);
+        if (!response.ok) {
+          throw new Error(
+            response.status === 404
+              ? "Статья не найдена"
+              : `Ошибка запроса: ${response.status}`
+          );
+        }
+        const data = await response.json();
+        if (!cancelled) setArticle(data);
       } catch (err) {
-        setError(err.message);
-        setLoading(false);
+        if (!cancelled) setError(err.message);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchArticle();
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   if (loading) return <div>Loading...</div>;
@@ -28,10 +43,10 @@ const ArticlePage = () => {
   if (!article) return <div>Article not found</div>;
 
   return (
-    <div class="col">
-      <div class="container-fluid h-100 ">
-        <div class="row body_row">
-          <div class="col-12 body">
+    <div className="col">
+      <div className="container-fluid h-100 ">
+        <div className="row body_row">
+          <div className="col-12 body">
             <h1>{article.title}</h1>
 
             <p>{article.content}</p>
