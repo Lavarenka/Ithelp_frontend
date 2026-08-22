@@ -3,8 +3,9 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.models import Article, Tag
-from app.schemas import ArticleListOut, TagCreate, TagOut, TagTreeOut
+from app.deps import require_admin
+from app.models import Article, Tag, User
+from app.schemas import ArticleListOut, TagCreate, TagUpdate, TagOut, TagTreeOut
 
 router = APIRouter(prefix="/tags", tags=["tags"])
 
@@ -74,7 +75,11 @@ def get_tag_articles(
 
 
 @router.post("/", response_model=TagOut, status_code=201)
-def create_tag(payload: TagCreate, db: Session = Depends(get_db)):
+def create_tag(
+    payload: TagCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     existing = db.execute(select(Tag).where(Tag.slug == payload.slug)).scalar_one_or_none()
     if existing is not None:
         raise HTTPException(status_code=409, detail="Tag with this slug already exists")
@@ -89,3 +94,62 @@ def create_tag(payload: TagCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(tag)
     return tag
+
+
+@router.put("/{tag_id}", response_model=TagOut)
+def update_tag(
+    tag_id: int,
+    payload: TagUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    tag = db.get(Tag, tag_id)
+    if tag is None:
+        raise HTTPException(status_code=404, detail="Tag not found")
+
+    if payload.slug is not None and payload.slug != tag.slug:
+        existing = db.execute(select(Tag).where(Tag.slug == payload.slug)).scalar_one_or_none()
+        if existing is not None:
+            raise HTTPException(status_code=409, detail="Tag with this slug already exists")
+        tag.slug = payload.slug
+
+    if payload.name is not None:
+        tag.name = payload.name
+
+    # parent_id передан явно (в том числе null — сделать тег корневым)?
+    if "parent_id" in payload.model_fields_set:
+        new_parent_id = payload.parent_id
+        if new_parent_id is not None:
+            if new_parent_id == tag_id:
+                raise HTTPException(status_code=400, detail="Тег не может быть родителем самому себе")
+            parent = db.get(Tag, new_parent_id)
+            if parent is None:
+                raise HTTPException(status_code=404, detail="Parent tag not found")
+            # Запрещаем цикл: новый родитель не должен быть потомком текущего тега.
+            descendant_ids = set(_collect_descendant_ids(tag))
+            if new_parent_id in descendant_ids:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Нельзя сделать родителем один из вложенных подтегов — образуется цикл",
+                )
+        tag.parent_id = new_parent_id
+
+    db.commit()
+    db.refresh(tag)
+    return tag
+
+
+@router.delete("/{tag_id}", status_code=204)
+def delete_tag(
+    tag_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    """Удаление тега каскадно удаляет все его вложенные подтеги (cascade на
+    модели) и просто отвязывает его от статей (промежуточная таблица
+    article_tags тоже каскадно чистится) — сами статьи не трогает."""
+    tag = db.get(Tag, tag_id)
+    if tag is None:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    db.delete(tag)
+    db.commit()

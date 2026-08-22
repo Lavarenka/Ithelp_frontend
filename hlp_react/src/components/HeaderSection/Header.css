@@ -75,6 +75,68 @@
     }
 }
 
+/* Кнопка с именем пользователя — раскрывает dropdown-меню (Админка/Выйти),
+   показывается вместо иконки-ключика, когда пользователь залогинен
+   (см. HeaderSection.jsx) */
+.header_user_toggle {
+    display: inline-flex;
+    align-items: center;
+    max-width: 140px;
+}
+
+.header_user_toggle::after {
+    margin-left: 0.4rem;
+}
+
+.header_username {
+    color: #c5d2d9;
+    font-size: 14px;
+    white-space: nowrap;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* На узких экранах текст имени не помещается рядом с бургером/логотипом —
+   заменяем его на иконку-человечка, но кнопка (и dropdown) остаются рабочими */
+@media (max-width: 575.98px) {
+    .header_username {
+        display: none;
+    }
+
+    .header_user_toggle {
+        max-width: none;
+    }
+
+    .header_user_toggle::before {
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        content: "\f2bd"; /* fa-user-gear */
+        font-size: 1.1rem;
+    }
+}
+
+.header_user_menu {
+    background: #212020;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 180px;
+}
+
+.header_user_menu .dropdown-item {
+    color: #c5d2d9;
+    font-size: 14px;
+}
+
+.header_user_menu .dropdown-item:hover,
+.header_user_menu .dropdown-item:focus {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.header_user_menu .dropdown-divider {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
 /***************/
 
 .text-underlined{

@@ -11,6 +11,16 @@ class TagCreate(TagBase):
     parent_id: int | None = None
 
 
+class TagUpdate(BaseModel):
+    """Все поля необязательны. parent_id можно явно передать как null, чтобы
+    сделать тег корневым — поэтому используем отдельный флаг has_parent_id,
+    выставляемый через model_fields_set на роуте (см. tags.py)."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    slug: str | None = Field(default=None, min_length=1, max_length=120)
+    parent_id: int | None = None
+
+
 class TagOut(TagBase):
     """Плоское представление тега — используется там, где вложенность не нужна
     (например, список тегов у конкретной статьи)."""

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import "./Header.css";
 import { API_BASE_URL } from "../../api";
 import TypingLogo from "./TypingLogo";
+import AuthModal from "../AuthModal/AuthModal";
+import { useAuth } from "../../context/AuthContext";
 
 const COMPACT_SCROLL_THRESHOLD = 40;
 
@@ -50,6 +52,7 @@ function TagMenuItem({ tag }) {
 export default function Header() {
   const [isCompact, setIsCompact] = useState(false);
   const [tags, setTags] = useState([]);
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -138,16 +141,49 @@ export default function Header() {
                             data-bs-target="#searchModal" title="Поиск">
                         <i className="fa-solid fa-magnifying-glass fa-rotate-90 fa-xl  "></i>
                     </button>
-                    <button type="button" className="btn header_search" data-bs-toggle="modal"
-                            data-bs-target="#loginModal" title="Авторизация">
-                        <i className="fa-solid fa-key fa-xl"></i>
-                    </button>
 
+                    {isAuthenticated ? (
+                        <div className="dropdown header_user">
+                            <button
+                                type="button"
+                                className="btn header_search header_user_toggle dropdown-toggle"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                title={user?.email}
+                            >
+                                <span className="header_username">{user?.username}</span>
+                            </button>
+                            <ul className="dropdown-menu dropdown-menu-end header_user_menu">
+                                {isAdmin && (
+                                    <li>
+                                        <Link className="dropdown-item" to="/admin">
+                                            <i className="fa-solid fa-gauge me-2"></i>
+                                            Админка
+                                        </Link>
+                                    </li>
+                                )}
+                                {isAdmin && <li><hr className="dropdown-divider" /></li>}
+                                <li>
+                                    <button type="button" className="dropdown-item" onClick={logout}>
+                                        <i className="fa-solid fa-arrow-right-from-bracket me-2"></i>
+                                        Выйти
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    ) : (
+                        <button type="button" className="btn header_search" data-bs-toggle="modal"
+                                data-bs-target="#loginModal" title="Авторизация">
+                            <i className="fa-solid fa-key fa-xl"></i>
+                        </button>
+                    )}
 
                 </div>
             </div>
         </div>
     </header>
+
+    <AuthModal />
 
     </>
   );

@@ -11,7 +11,7 @@ const ArticleCard = ({ article }) => {
             <div className="card_img me-2">
               {/* <img src="assets/img/no-name.jpg" alt=""> */}
             </div>
-            <div className="card_login me-2">admin</div>
+            <div className="card_login me-2">{article.author?.username ?? "admin"}</div>
             <div className="card_time">14 минут назад</div>
           </div>
           {tags.length > 0 && (

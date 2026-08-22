@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, String, Text, DateTime
+from sqlalchemy import Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -18,7 +18,12 @@ class Article(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    # Nullable — старые статьи (созданные до появления авторизации) остаются без автора.
+    author_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
 
     tags: Mapped[list["Tag"]] = relationship(
         "Tag", secondary=article_tags, back_populates="articles"
     )
+    author: Mapped["User | None"] = relationship("User", back_populates="articles")
