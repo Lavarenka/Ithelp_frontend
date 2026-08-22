@@ -4,6 +4,11 @@
     --text-color: #2d2d2d;
     --menu-color: #c5d2d9;
     --while-color: #fff;
+    /* Реальная высота .footer (см. FooterSection.css) — он теперь
+       position: fixed, поэтому не занимает место в потоке документа.
+       Используем эту переменную как padding-bottom у main.main, чтобы
+       последний блок контента не прятался под приклеенным подвалом. */
+    --footer-height: 61px;
 }
 
 html, body {
@@ -30,6 +35,7 @@ main.main {
     overflow: hidden;
     margin: 0 auto;
     flex: 1 1 auto;
+    padding-bottom: var(--footer-height);
 }
 
 .border_ {
