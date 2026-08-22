@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import ArticleCard from "../CardSection/ArticleCard";
-import { API_BASE_URL } from "../../api";
+import { apiRequest } from "../../api";
 
 const PAGE_SIZE = 6;
 
@@ -35,13 +35,10 @@ export default function ArticleFeed({ listUrl, emptyMessage = "Пока нет �
       try {
         const skip = isInitial ? 0 : loadedCountRef.current;
         const separator = listUrl.includes("?") ? "&" : "?";
-        const response = await fetch(
-          `${API_BASE_URL}${listUrl}${separator}skip=${skip}&limit=${PAGE_SIZE}`
-        );
-        if (!response.ok) {
-          throw new Error(`Ошибка запроса: ${response.status}`);
-        }
-        const data = await response.json();
+        // apiRequest сам подставит токен, если пользователь залогинен (тогда
+        // бэкенд проставит is_favorited для каждой статьи) — и просто не
+        // добавит заголовок для гостя, публичные списки от этого не ломаются.
+        const data = await apiRequest(`${listUrl}${separator}skip=${skip}&limit=${PAGE_SIZE}`);
 
         setArticles((prev) => {
           const next = isInitial ? data.items : [...prev, ...data.items];

@@ -40,6 +40,11 @@ class ArticleOut(ArticleBase):
     created_at: datetime
     tags: list[TagOut] = []
     author: ArticleAuthorOut | None = None
+    # Оба поля не читаются из модели Article напрямую (from_attributes их не
+    # найдёт как атрибуты) — роутер проставляет их вручную после запроса,
+    # так как они зависят от текущего пользователя / требуют отдельного count.
+    is_favorited: bool = False
+    favorites_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 

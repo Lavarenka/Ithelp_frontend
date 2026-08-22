@@ -5,6 +5,7 @@ import { API_BASE_URL } from "../../api";
 import TypingLogo from "./TypingLogo";
 import AuthModal from "../AuthModal/AuthModal";
 import { useAuth } from "../../context/AuthContext";
+import { useFavorites } from "../../context/FavoritesContext";
 
 const COMPACT_SCROLL_THRESHOLD = 40;
 
@@ -53,6 +54,7 @@ export default function Header() {
   const [isCompact, setIsCompact] = useState(false);
   const [tags, setTags] = useState([]);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { count: favoritesCount } = useFavorites();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -141,6 +143,15 @@ export default function Header() {
                             data-bs-target="#searchModal" title="Поиск">
                         <i className="fa-solid fa-magnifying-glass fa-rotate-90 fa-xl  "></i>
                     </button>
+
+                    {isAuthenticated && (
+                        <Link to="/favorites" className="btn header_search header_favorites" title="Избранное">
+                            <i className="fa-solid fa-bookmark fa-xl"></i>
+                            {favoritesCount > 0 && (
+                                <span className="header_favorites_badge">{favoritesCount}</span>
+                            )}
+                        </Link>
+                    )}
 
                     {isAuthenticated ? (
                         <div className="dropdown header_user">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import "./SitebarSection.css";
 import { API_BASE_URL } from "../../api";
@@ -8,28 +8,38 @@ const POPULAR_LIMIT = 4;
 export default function Sitebar() {
   const [popularArticles, setPopularArticles] = useState([]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchPopular = async () => {
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/articles/popular/?limit=${POPULAR_LIMIT}`
-        );
-        if (!response.ok) return;
-        const data = await response.json();
-        if (!cancelled) setPopularArticles(data);
-      } catch {
-        // Блок "Популярные статьи" необязателен для базовой работы сайта —
-        // если бэкенд недоступен, молча оставляем список пустым.
-      }
-    };
-
-    fetchPopular();
-    return () => {
-      cancelled = true;
-    };
+  const fetchPopular = useCallback(async ({ signal } = {}) => {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/articles/popular/?limit=${POPULAR_LIMIT}`,
+        { signal }
+      );
+      if (!response.ok) return;
+      const data = await response.json();
+      setPopularArticles(data);
+    } catch {
+      // Включая AbortError (отмена при размонтировании/повторном вызове) —
+      // блок "Популярные статьи" необязателен для базовой работы сайта,
+      // при любой ошибке просто оставляем список как есть.
+    }
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchPopular({ signal: controller.signal });
+    return () => controller.abort();
+  }, [fetchPopular]);
+
+  // Пересчитываем список после каждого просмотра статьи (событие шлёт
+  // ArticlePage) — иначе счётчики в сайдбаре "застывают" до перезагрузки
+  // страницы, хотя реальные views на бэкенде уже выросли.
+  useEffect(() => {
+    const handleArticleViewed = () => {
+      fetchPopular();
+    };
+    window.addEventListener("it_hlp:article-viewed", handleArticleViewed);
+    return () => window.removeEventListener("it_hlp:article-viewed", handleArticleViewed);
+  }, [fetchPopular]);
 
   return (
     <>

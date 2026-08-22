@@ -7,6 +7,8 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import ArticlePage from "./components/CardSection/ArticlePage";
 import TagPage from "./components/TagPage/TagPage";
 import AdminPage from "./components/AdminPage/AdminPage";
+import FavoritesPage from "./components/FavoritesPage/FavoritesPage";
+import CookieBanner from "./components/CookieBanner/CookieBanner";
 
 function App() {
   // Админка — самостоятельная страница без сайдбара (там своя раскладка:
@@ -30,6 +32,7 @@ function App() {
                 <Route path="/" element={<BodySection />} />
                 <Route path="/articles/:id" element={<ArticlePage />} />
                 <Route path="/tags/:slug" element={<TagPage />} />
+                <Route path="/favorites" element={<FavoritesPage />} />
               </Routes>
               <Sitebar />
             </div>
@@ -37,6 +40,8 @@ function App() {
         </div>
       </main>
       <Footer />
+
+      <CookieBanner />
     </div>
   );
 }

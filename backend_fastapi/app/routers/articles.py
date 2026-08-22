@@ -3,8 +3,8 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
-from app.deps import require_admin
-from app.models import Article, Tag, User
+from app.deps import require_admin, get_current_user_optional
+from app.models import Article, Tag, User, Favorite
 from app.schemas import ArticleCreate, ArticleUpdate, ArticleOut, ArticleListOut
 
 router = APIRouter(prefix="/articles", tags=["articles"])
@@ -13,12 +13,40 @@ router = APIRouter(prefix="/articles", tags=["articles"])
 ARTICLE_LOAD_OPTIONS = (selectinload(Article.tags), selectinload(Article.author))
 
 
+def _annotate_favorites(db: Session, articles: list[Article], current_user: User | None) -> None:
+    """Проставляет article.is_favorited / article.favorites_count "на лету" —
+    это не поля модели, а атрибуты, которые прочитает Pydantic благодаря
+    from_attributes при сериализации в ArticleOut (см. schemas/article.py)."""
+    if not articles:
+        return
+    article_ids = [a.id for a in articles]
+
+    counts_stmt = (
+        select(Favorite.article_id, func.count())
+        .where(Favorite.article_id.in_(article_ids))
+        .group_by(Favorite.article_id)
+    )
+    counts = dict(db.execute(counts_stmt).all())
+
+    favorited_ids: set[int] = set()
+    if current_user is not None:
+        favorited_stmt = select(Favorite.article_id).where(
+            Favorite.user_id == current_user.id, Favorite.article_id.in_(article_ids)
+        )
+        favorited_ids = set(db.execute(favorited_stmt).scalars().all())
+
+    for article in articles:
+        article.favorites_count = counts.get(article.id, 0)
+        article.is_favorited = article.id in favorited_ids
+
+
 @router.get("/", response_model=ArticleListOut)
 def list_articles(
     skip: int = 0,
     limit: int = 10,
     search: str | None = None,
     db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
 ):
     """search — поиск по заголовку (регистронезависимо), используется в
     списке статей админки. На обычной ленте фронт его не передаёт."""
@@ -36,11 +64,16 @@ def list_articles(
     )
     items = db.execute(stmt).scalars().all()
     total = db.execute(select(func.count()).select_from(Article).where(*filters)).scalar_one()
+    _annotate_favorites(db, items, current_user)
     return ArticleListOut(items=items, total=total)
 
 
 @router.get("/popular/", response_model=list[ArticleOut])
-def list_popular_articles(limit: int = 4, db: Session = Depends(get_db)):
+def list_popular_articles(
+    limit: int = 4,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
+):
     """Самые просматриваемые статьи — для блока "Популярные статьи" в
     сайдбаре. Важно: этот путь идёт ДО "/{article_id}" в файле, иначе
     FastAPI попытался бы распарсить "popular" как article_id и упал бы
@@ -52,11 +85,17 @@ def list_popular_articles(limit: int = 4, db: Session = Depends(get_db)):
         .order_by(Article.views.desc(), Article.created_at.desc())
         .limit(limit)
     )
-    return db.execute(stmt).scalars().all()
+    items = db.execute(stmt).scalars().all()
+    _annotate_favorites(db, items, current_user)
+    return items
 
 
 @router.get("/{article_id}", response_model=ArticleOut)
-def get_article(article_id: int, db: Session = Depends(get_db)):
+def get_article(
+    article_id: int,
+    db: Session = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
+):
     stmt = (
         select(Article)
         .where(Article.id == article_id)
@@ -69,6 +108,7 @@ def get_article(article_id: int, db: Session = Depends(get_db)):
     article.views += 1
     db.commit()
     db.refresh(article)
+    _annotate_favorites(db, [article], current_user)
     return article
 
 

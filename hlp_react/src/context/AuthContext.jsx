@@ -68,6 +68,22 @@ export function AuthProvider({ children }) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  // Синхронизация между вкладками: localStorage общий для всех вкладок одного
+  // домена, но событие "storage" срабатывает только в ДРУГИХ вкладках, не в
+  // той, где произошло изменение (это ограничение самого браузера). Поэтому
+  // если вкладка А была открыта ДО входа во вкладке Б, вкладка А сама по себе
+  // не узнает о новом токене — без этого слушателя. Событие приходит и на
+  // логин (newValue = токен), и на логаут в другой вкладке (newValue = null).
+  useEffect(() => {
+    const handleStorage = (event) => {
+      if (event.key !== TOKEN_STORAGE_KEY) return;
+      setToken(event.newValue);
+      if (!event.newValue) setUser(null);
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   const login = useCallback(

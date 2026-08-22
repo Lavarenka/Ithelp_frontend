@@ -22,3 +22,6 @@ class User(Base):
     )
 
     articles: Mapped[list["Article"]] = relationship("Article", back_populates="author")
+    favorites: Mapped[list["Favorite"]] = relationship(
+        "Favorite", back_populates="user", cascade="all, delete-orphan"
+    )

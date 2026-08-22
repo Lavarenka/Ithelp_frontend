@@ -10,6 +10,7 @@ from app.schemas.user import (
     UserRoleUpdate,
     UserActiveUpdate,
 )
+from app.schemas.favorite import FavoriteStatusOut
 
 __all__ = [
     "ArticleBase",
@@ -31,4 +32,5 @@ __all__ = [
     "UserListOut",
     "UserRoleUpdate",
     "UserActiveUpdate",
+    "FavoriteStatusOut",
 ]

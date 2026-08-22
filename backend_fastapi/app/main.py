@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import articles, tags, auth, users
+from app.routers import articles, tags, auth, users, favorites
 
 # Пока без Alembic-миграций: на старте создаём таблицы, если их ещё нет.
 # Когда бэкенд обрастёт другими моделями — заменить на alembic upgrade head.
@@ -23,6 +23,7 @@ app.include_router(auth.router)
 app.include_router(articles.router)
 app.include_router(tags.router)
 app.include_router(users.router)
+app.include_router(favorites.router)
 
 
 @app.get("/")

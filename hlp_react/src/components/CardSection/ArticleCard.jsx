@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import FavoriteButton from "../FavoriteButton/FavoriteButton";
 
 const ArticleCard = ({ article }) => {
   const tags = article.tags ?? [];
@@ -35,13 +36,18 @@ const ArticleCard = ({ article }) => {
             <p>{article.content}</p>
           </div>
           <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <div className="d-flex flex-wrap">
+            <div className="d-flex flex-wrap align-items-center">
               <div className="d-flex me-2 " title="Количество просмотров">
                 <div className="">
                   <i className="fa-regular fa-eye "></i>
                 </div>
                 <div className="">
-                  <p>{article.views ?? 0}</p>
+                  {/* Раньше здесь был <p>, а не <div> как у соседних иконок —
+                      у <p> есть свой нижний margin (Bootstrap-стили), из-за
+                      чего вся ячейка "глаз" становилась выше соседних и
+                      флажок избранного визуально "уезжал" ниже остальных
+                      иконок в ряду (см. баг-репорт со скриншотом). */}
+                  {article.views ?? 0}
                 </div>
               </div>
               <div className="d-flex me-2" title="Комментарии">
@@ -58,11 +64,7 @@ const ArticleCard = ({ article }) => {
                   </a>
                 </div>
               </div>
-              <div className="d-flex me-2" title="Добавить в закладки">
-                <div className="">
-                  <i className="fa-regular fa-bookmark"></i>
-                </div>
-              </div>
+              <FavoriteButton articleId={article.id} className="me-2" />
             </div>
             <div className="card_link">
               <Link to={`/articles/${article.id}`} className="read-more">

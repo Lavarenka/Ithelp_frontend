@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { API_BASE_URL } from "../../api";
+import FavoriteButton from "../FavoriteButton/FavoriteButton";
 
 const ArticlePage = () => {
   const { id } = useParams();
@@ -24,7 +25,15 @@ const ArticlePage = () => {
           );
         }
         const data = await response.json();
-        if (!cancelled) setArticle(data);
+        if (!cancelled) {
+          setArticle(data);
+          // Просмотр статьи увеличивает views на бэкенде — оповещаем
+          // остальную страницу (сайдбар "Популярные статьи"), чтобы
+          // счётчик обновился без ручной перезагрузки. Простое глобальное
+          // событие вместо контекста — статья не единственное место,
+          // которое меняет views, а слушателей может быть 0 (это нормально).
+          window.dispatchEvent(new CustomEvent("it_hlp:article-viewed"));
+        }
       } catch (err) {
         if (!cancelled) setError(err.message);
       } finally {
@@ -52,7 +61,10 @@ const ArticlePage = () => {
           {error && <p className="body_state text-danger">{error}</p>}
           {!loading && !error && article && (
             <>
-              <h1>{article.title}</h1>
+              <div className="d-flex align-items-start justify-content-between gap-3">
+                <h1>{article.title}</h1>
+                <FavoriteButton articleId={article.id} size="large" />
+              </div>
               <p className="card_time mb-3">
                 Просмотров: {article.views ?? 0}
               </p>
