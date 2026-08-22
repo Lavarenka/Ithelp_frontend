@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { API_BASE_URL } from "../../api";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
+import MarkdownContent from "../MarkdownContent/MarkdownContent";
 
 const ArticlePage = () => {
   const { id } = useParams();
@@ -79,7 +80,13 @@ const ArticlePage = () => {
                   ))}
                 </div>
               )}
-              <p className="article_content">{article.content}</p>
+              {/* Контент статьи — Markdown (заголовки, картинки, списки,
+                  блоки кода с кнопкой "копировать"). Раньше был обычный
+                  <p>{article.content}</p> — теперь рендерим через
+                  MarkdownContent, а сырой текст (для старых статей без
+                  markdown-разметки) отображается как обычный абзац, т.к.
+                  Markdown-парсер не ломается на plain-тексте. */}
+              <MarkdownContent content={article.content} />
             </>
           )}
         </div>

@@ -1,6 +1,24 @@
 import { Link } from "react-router-dom";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 
+const EXCERPT_LENGTH = 220;
+
+// Превью статьи в ленте — обычный текст, без Markdown-разметки. Полный
+// рендер (заголовки/картинки/код) показывается только на странице статьи
+// (см. MarkdownContent), а тут просто убираем markdown-синтаксис, чтобы в
+// карточке не мелькали "###", "```js" и звёздочки жирного текста.
+function toPlainExcerpt(markdown) {
+  if (!markdown) return "";
+  const plain = markdown
+    .replace(/```[\s\S]*?```/g, " ") // блоки кода целиком
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ") // картинки
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1") // ссылки — оставляем текст
+    .replace(/[#>*_`~-]/g, " ") // заголовки/акценты/списки/строки-разделители
+    .replace(/\s+/g, " ")
+    .trim();
+  return plain.length > EXCERPT_LENGTH ? `${plain.slice(0, EXCERPT_LENGTH).trim()}…` : plain;
+}
+
 const ArticleCard = ({ article }) => {
   const tags = article.tags ?? [];
 
@@ -33,7 +51,7 @@ const ArticleCard = ({ article }) => {
           </div>
           {/* <div className="my-2"><img src="assets/img/it.png" alt=""></div> */}
           <div className="card_description">
-            <p>{article.content}</p>
+            <p>{toPlainExcerpt(article.content)}</p>
           </div>
           <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div className="d-flex flex-wrap align-items-center">
