@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { API_BASE_URL } from "../../api";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import MarkdownContent from "../MarkdownContent/MarkdownContent";
+import CommentSection from "../CommentSection/CommentSection";
 
 const ArticlePage = () => {
   const { id } = useParams();
@@ -87,6 +88,8 @@ const ArticlePage = () => {
                   markdown-разметки) отображается как обычный абзац, т.к.
                   Markdown-парсер не ломается на plain-тексте. */}
               <MarkdownContent content={article.content} />
+
+              <CommentSection articleId={article.id} />
             </>
           )}
         </div>

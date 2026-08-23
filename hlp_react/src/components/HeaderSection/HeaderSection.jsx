@@ -50,6 +50,29 @@ function TagMenuItem({ tag }) {
   );
 }
 
+// Переключатель языка RU/EN — пока просто заглушка-переключатель без
+// реального перевода: меняет только собственное состояние (какая половина
+// подсвечена), ни текст интерфейса, ни список статей не трогает. Когда
+// подключим i18n и фильтрацию статей по языку, сюда добавится вызов
+// i18n.changeLanguage(...) и общий контекст языка вместо локального state.
+function LanguageToggle() {
+  const [isEn, setIsEn] = useState(false);
+
+  return (
+    <button
+      type="button"
+      className={`lang-toggle ${isEn ? "lang-toggle--en" : ""}`}
+      onClick={() => setIsEn((prev) => !prev)}
+      title="Язык сайта (скоро)"
+      aria-label="Переключить язык сайта"
+    >
+      <span className="lang-toggle_pill" aria-hidden="true"></span>
+      <span className="lang-toggle_half">RU</span>
+      <span className="lang-toggle_half">EN</span>
+    </button>
+  );
+}
+
 export default function Header() {
   const [isCompact, setIsCompact] = useState(false);
   const [tags, setTags] = useState([]);
@@ -143,6 +166,8 @@ export default function Header() {
                             data-bs-target="#searchModal" title="Поиск">
                         <i className="fa-solid fa-magnifying-glass fa-rotate-90 fa-xl  "></i>
                     </button>
+
+                    <LanguageToggle />
 
                     {isAuthenticated && (
                         <Link to="/favorites" className="btn header_search header_favorites" title="Избранное">

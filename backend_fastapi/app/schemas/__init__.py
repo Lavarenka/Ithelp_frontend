@@ -11,6 +11,18 @@ from app.schemas.user import (
     UserActiveUpdate,
 )
 from app.schemas.favorite import FavoriteStatusOut
+from app.schemas.comment import (
+    CommentAuthorOut,
+    CommentCreate,
+    CommentOut,
+    CommentListOut,
+    CommentArticleOut,
+    CommentAdminOut,
+    CommentAdminListOut,
+    CommentVoteOut,
+    CommentVoteIn,
+    CommentStatusUpdate,
+)
 
 __all__ = [
     "ArticleBase",
@@ -33,4 +45,14 @@ __all__ = [
     "UserRoleUpdate",
     "UserActiveUpdate",
     "FavoriteStatusOut",
+    "CommentAuthorOut",
+    "CommentCreate",
+    "CommentOut",
+    "CommentListOut",
+    "CommentArticleOut",
+    "CommentAdminOut",
+    "CommentAdminListOut",
+    "CommentVoteOut",
+    "CommentVoteIn",
+    "CommentStatusUpdate",
 ]

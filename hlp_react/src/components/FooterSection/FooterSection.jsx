@@ -5,9 +5,9 @@ export default function Footer() {
     <>
       <footer className="footer">
         <div className="container">
-          <div className=" row my-4 py-4">
+          <div className="row py-3 align-items-center">
             <div className="col-md-6">
-              <h5>it_hlp blog © 2024</h5>
+              <h5 className="footer_title">it_hlp blog © 2024</h5>
             </div>
 
             <div className="col-md-6 d-flex justify-content-md-end ">

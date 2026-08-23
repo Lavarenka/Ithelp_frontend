@@ -72,8 +72,7 @@ const ArticleCard = ({ article }) => {
                 <div className="">
                   <i className="fa-regular fa-comment"></i>
                 </div>
-                {/* Комментариев пока нет в API — заглушка до реализации */}
-                <div className="">0</div>
+                <div className="">{article.comments_count ?? 0}</div>
               </div>
               <div className="d-flex me-2" title="Поделиться">
                 <div className="card_link">

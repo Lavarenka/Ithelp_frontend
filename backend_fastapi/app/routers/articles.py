@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.deps import require_admin, get_current_user_optional
-from app.models import Article, Tag, User, Favorite
+from app.models import Article, Tag, User, Favorite, Comment
 from app.schemas import ArticleCreate, ArticleUpdate, ArticleOut, ArticleListOut
 
 router = APIRouter(prefix="/articles", tags=["articles"])
@@ -40,6 +40,27 @@ def _annotate_favorites(db: Session, articles: list[Article], current_user: User
         article.is_favorited = article.id in favorited_ids
 
 
+def _annotate_comments_count(db: Session, articles: list[Article]) -> None:
+    """Проставляет article.comments_count "на лету" — считаем только
+    опубликованные комментарии (status="approved"), как и в публичном
+    списке комментариев статьи (routers/comments.py, list_comments):
+    отклонённые/ожидающие модерации не должны влиять на цифру, которую
+    видят обычные пользователи в ленте."""
+    if not articles:
+        return
+    article_ids = [a.id for a in articles]
+
+    counts_stmt = (
+        select(Comment.article_id, func.count())
+        .where(Comment.article_id.in_(article_ids), Comment.status == "approved")
+        .group_by(Comment.article_id)
+    )
+    counts = dict(db.execute(counts_stmt).all())
+
+    for article in articles:
+        article.comments_count = counts.get(article.id, 0)
+
+
 @router.get("/", response_model=ArticleListOut)
 def list_articles(
     skip: int = 0,
@@ -65,6 +86,7 @@ def list_articles(
     items = db.execute(stmt).scalars().all()
     total = db.execute(select(func.count()).select_from(Article).where(*filters)).scalar_one()
     _annotate_favorites(db, items, current_user)
+    _annotate_comments_count(db, items)
     return ArticleListOut(items=items, total=total)
 
 
@@ -87,6 +109,7 @@ def list_popular_articles(
     )
     items = db.execute(stmt).scalars().all()
     _annotate_favorites(db, items, current_user)
+    _annotate_comments_count(db, items)
     return items
 
 
@@ -109,6 +132,7 @@ def get_article(
     db.commit()
     db.refresh(article)
     _annotate_favorites(db, [article], current_user)
+    _annotate_comments_count(db, [article])
     return article
 
 

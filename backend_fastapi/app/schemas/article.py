@@ -45,6 +45,11 @@ class ArticleOut(ArticleBase):
     # так как они зависят от текущего пользователя / требуют отдельного count.
     is_favorited: bool = False
     favorites_count: int = 0
+    # Тоже не читается из модели напрямую — роутер считает его вручную
+    # (см. _annotate_comments_count в routers/articles.py), учитывая только
+    # опубликованные (status="approved") комментарии, как и в публичном
+    # списке комментариев статьи.
+    comments_count: int = 0
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -3,6 +3,13 @@ import ArticleCard from "../CardSection/ArticleCard";
 import { apiRequest } from "../../api";
 
 const PAGE_SIZE = 6;
+// Пока нет WebSocket/SSE — раз в 20с тихо подтягиваем свежие счётчики
+// (просмотры/избранное/комментарии) для уже загруженных статей, чтобы,
+// например, число комментариев в ленте обновлялось само после того как
+// админ кого-то опубликует — без перезагрузки страницы. Список статей
+// (порядок/наличие карточек, бесконечный скролл) этот опрос не трогает —
+// только обновляет цифры у уже отрисованных карточек по id.
+const COUNTS_POLL_INTERVAL = 20000;
 
 /**
  * Общая лента статей с бесконечной подгрузкой по скроллу.
@@ -66,6 +73,42 @@ export default function ArticleFeed({ listUrl, emptyMessage = "Пока нет �
   }, [fetchPage]);
 
   const hasMore = total === null || loadedCountRef.current < total;
+
+  // Тихий фоновый опрос: перезапрашивает ровно то же количество статей,
+  // что уже подгружено (skip=0, limit=loadedCountRef.current), и обновляет
+  // только числовые поля (comments_count/views/favorites_count) у карточек
+  // с совпадающим id — состав ленты, порядок и бесконечный скролл не
+  // трогаем, чтобы не сбить пользователю позицию прокрутки или список.
+  useEffect(() => {
+    const id = setInterval(async () => {
+      if (document.visibilityState !== "visible") return;
+      if (loadedCountRef.current === 0) return;
+      try {
+        const separator = listUrl.includes("?") ? "&" : "?";
+        const data = await apiRequest(
+          `${listUrl}${separator}skip=0&limit=${loadedCountRef.current}`
+        );
+        const freshById = new Map(data.items.map((a) => [a.id, a]));
+        setArticles((prev) =>
+          prev.map((a) => {
+            const fresh = freshById.get(a.id);
+            if (!fresh) return a;
+            return {
+              ...a,
+              comments_count: fresh.comments_count,
+              views: fresh.views,
+              favorites_count: fresh.favorites_count,
+              is_favorited: fresh.is_favorited,
+            };
+          })
+        );
+      } catch {
+        // Тихий опрос — ошибку молча пропускаем, старые цифры остаются
+        // на экране до следующей попытки.
+      }
+    }, COUNTS_POLL_INTERVAL);
+    return () => clearInterval(id);
+  }, [listUrl]);
 
   // Подгрузка следующей страницы, когда "якорь" внизу списка появляется в зоне видимости
   useEffect(() => {

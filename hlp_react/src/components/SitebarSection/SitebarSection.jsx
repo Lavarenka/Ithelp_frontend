@@ -4,6 +4,10 @@ import "./SitebarSection.css";
 import { API_BASE_URL } from "../../api";
 
 const POPULAR_LIMIT = 4;
+// Пока нет WebSocket/SSE — раз в 20с тихо перезапрашиваем топ статей, чтобы
+// число комментариев в сайдбаре тоже обновлялось само (например, после
+// того как админ кого-то опубликует), а не только по событию просмотра.
+const POLL_INTERVAL = 20000;
 
 export default function Sitebar() {
   const [popularArticles, setPopularArticles] = useState([]);
@@ -41,6 +45,19 @@ export default function Sitebar() {
     return () => window.removeEventListener("it_hlp:article-viewed", handleArticleViewed);
   }, [fetchPopular]);
 
+  // Тихий фоновый опрос — подхватывает изменившееся число комментариев (и
+  // просмотров/порядок топа) без перезагрузки страницы и без ожидания
+  // события "article-viewed" (которое стреляет только на самой странице
+  // статьи, а не когда комментарий одобрили в админке).
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        fetchPopular();
+      }
+    }, POLL_INTERVAL);
+    return () => clearInterval(id);
+  }, [fetchPopular]);
+
   return (
     <>
       <div className="layout_sidebar sitebar">
@@ -60,13 +77,21 @@ export default function Sitebar() {
                     <Link to={`/articles/${article.id}`}>{article.title}</Link>
                   </div>
 
-                  <div className="star_icons d-flex" title="Количество просмотров">
-                    <div className="d-flex me-3">
+                  <div className="star_icons d-flex">
+                    <div className="d-flex me-3" title="Количество просмотров">
                       <div>
                         <i className="fa-regular fa-eye"></i>
                       </div>
                       <div>
                         <p>{article.views}</p>
+                      </div>
+                    </div>
+                    <div className="d-flex me-3" title="Комментарии">
+                      <div>
+                        <i className="fa-regular fa-comment"></i>
+                      </div>
+                      <div>
+                        <p>{article.comments_count ?? 0}</p>
                       </div>
                     </div>
                   </div>

@@ -4,12 +4,14 @@ import { useAuth } from "../../context/AuthContext";
 import AdminArticles from "./AdminArticles";
 import AdminTags from "./AdminTags";
 import AdminUsers from "./AdminUsers";
+import AdminComments from "./AdminComments";
 import "./AdminPage.css";
 
 const TABS = [
   { key: "articles", label: "Статьи", icon: "fa-newspaper" },
   { key: "tags", label: "Теги", icon: "fa-tags" },
   { key: "users", label: "Пользователи", icon: "fa-users" },
+  { key: "comments", label: "Комментарии", icon: "fa-comments" },
 ];
 
 export default function AdminPage() {
@@ -70,6 +72,7 @@ export default function AdminPage() {
         {activeTab === "articles" && <AdminArticles />}
         {activeTab === "tags" && <AdminTags />}
         {activeTab === "users" && <AdminUsers />}
+        {activeTab === "comments" && <AdminComments />}
       </div>
     </div>
   );

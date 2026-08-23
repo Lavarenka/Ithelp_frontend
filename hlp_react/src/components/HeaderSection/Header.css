@@ -162,6 +162,72 @@
     padding: 0 4px;
 }
 
+/* Переключатель языка RU/EN в шапке — пока заглушка (см. LanguageToggle в
+   HeaderSection.jsx), но выглядит и переключается уже по-настоящему.
+   Компактный свитч: обе подписи видны всегда, активная половина залита
+   акцентным цветом (тем же жёлтым, что и бейдж "Избранное") и плавно
+   "переезжает" между RU и EN. */
+.lang-toggle {
+    position: relative;
+    display: inline-flex;
+    width: 60px;
+    height: 28px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.lang-toggle_pill {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc(50% - 2px);
+    height: calc(100% - 4px);
+    border-radius: 999px;
+    background: #e0a800;
+    transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+}
+
+.lang-toggle--en .lang-toggle_pill {
+    transform: translateX(100%);
+}
+
+.lang-toggle_half {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #c5d2d9;
+    transition: color .28s ease;
+}
+
+.lang-toggle:not(.lang-toggle--en) .lang-toggle_half:first-child,
+.lang-toggle--en .lang-toggle_half:last-child {
+    color: #212020;
+}
+
+/* На узких экранах иконки в шапке и так в тесноте — немного ужимаем свитч,
+   чтобы он не расталкивал соседние кнопки (тот же приём, что и у
+   .header_icons .header_search выше). */
+@media (max-width: 575.98px) {
+    .lang-toggle {
+        width: 52px;
+        height: 24px;
+    }
+
+    .lang-toggle_half {
+        font-size: 9px;
+    }
+}
+
 /***************/
 
 .text-underlined{

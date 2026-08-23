@@ -1,0 +1,159 @@
+.comment-section {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #ddd;
+}
+
+.comment-section_title {
+    margin-bottom: 1rem;
+}
+
+.comment-section_count {
+    color: #888;
+    font-weight: 400;
+}
+
+.comment-section_guest-notice {
+    background: #f2f2f2;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: #555;
+    margin-bottom: 1.5rem;
+}
+
+.comment-section_state {
+    color: #888;
+}
+
+.comment-section_state--error {
+    color: #c0392b;
+}
+
+.comment-section_empty {
+    color: #888;
+    margin-bottom: 1rem;
+}
+
+/* ---- форма отправки ---- */
+.comment-form {
+    margin-bottom: 1.75rem;
+}
+
+.comment-form_textarea {
+    resize: vertical;
+    margin-bottom: 0.6rem;
+}
+
+.comment-form_footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.comment-form_error {
+    color: #c0392b;
+    font-size: 0.9rem;
+}
+
+.comment-form_notice {
+    margin-top: 0.75rem;
+    margin-bottom: 0;
+    padding: 0.6rem 0.9rem;
+    background: #fff8e1;
+    border: 1px solid #f0d878;
+    border-radius: 6px;
+    color: #8a6d1a;
+    font-size: 0.9rem;
+}
+
+/* ---- список комментариев ---- */
+.comment-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.comment-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.comment-item:last-child {
+    border-bottom: none;
+}
+
+.comment-item_header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 0.35rem;
+}
+
+.comment-item_author {
+    font-weight: 600;
+    color: var(--title-color, #212020);
+}
+
+.comment-item_date {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.comment-item_text {
+    margin-bottom: 0.5rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* ---- лайк/дизлайк ---- */
+.comment-votes {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.comment-votes_btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 0.25rem 0.7rem;
+    color: #666;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+}
+
+.comment-votes_btn:hover:not(:disabled) {
+    background: #f2f2f2;
+}
+
+.comment-votes_btn:disabled {
+    cursor: default;
+    opacity: 0.55;
+}
+
+.comment-votes_btn--active-like {
+    color: #2e7d32;
+    border-color: #2e7d32;
+    background: #eaf6ea;
+}
+
+.comment-votes_btn--active-dislike {
+    color: #c0392b;
+    border-color: #c0392b;
+    background: #fbeceb;
+}
+
+/* ---- пагинация ---- */
+.comment-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    color: #666;
+    font-size: 0.9rem;
+}

@@ -223,3 +223,51 @@
     font-size: 14px;
     color: rgba(0, 0, 0, 0.6);
 }
+
+/* --- Комментарии --- */
+
+.admin-comments_filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.admin-comments_text {
+    max-width: 360px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Неопубликованные (на модерации) строки выделяются жёлтым фоном — видно
+   с первого взгляда, что требует внимания админа, даже во вкладке "Все". */
+.admin-table_row--pending {
+    background: #fff8e1;
+}
+
+.admin-table_row--pending:hover {
+    background: #fef1c7;
+}
+
+.admin-comments_status {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.admin-comments_status--pending {
+    background: #fbe7a1;
+    color: #7a5b00;
+}
+
+.admin-comments_status--approved {
+    background: #d4edda;
+    color: #1e7e34;
+}
+
+.admin-comments_status--rejected {
+    background: #f1dede;
+    color: #a83232;
+}
