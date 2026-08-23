@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { apiRequest } from "../../api";
 
 const EMPTY_FORM = { name: "", slug: "", parent_id: "" };
@@ -17,6 +18,7 @@ function flattenTree(tree, depth = 0) {
 }
 
 export default function AdminTags() {
+  const { t } = useTranslation();
   const [tree, setTree] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -94,8 +96,8 @@ export default function AdminTags() {
   const handleDelete = async (tag) => {
     const hasChildren = tag.children && tag.children.length > 0;
     const warning = hasChildren
-      ? `Удалить тег «${tag.name}»? Вложенные подтеги тоже будут удалены. Это действие необратимо.`
-      : `Удалить тег «${tag.name}»? Это действие необратимо.`;
+      ? t("admin.tags.confirmDeleteWithChildren", { name: tag.name })
+      : t("admin.tags.confirmDelete", { name: tag.name });
     if (!window.confirm(warning)) return;
     try {
       await apiRequest(`/tags/${tag.id}`, { method: "DELETE" });
@@ -111,16 +113,16 @@ export default function AdminTags() {
         <div />
         <button type="button" className="btn btn-dark" onClick={startCreate}>
           <i className="fa-solid fa-plus me-2"></i>
-          Новый тег
+          {t("admin.tags.newTag")}
         </button>
       </div>
 
       {editingId !== null && (
         <form className="admin-form" onSubmit={handleSave}>
-          <h3>{editingId === "new" ? "Новый тег" : "Редактирование тега"}</h3>
+          <h3>{editingId === "new" ? t("admin.tags.formTitleNew") : t("admin.tags.formTitleEdit")}</h3>
 
           <div className="mb-3">
-            <label className="form-label">Название</label>
+            <label className="form-label">{t("admin.tags.fieldName")}</label>
             <input
               type="text"
               className="form-control"
@@ -132,7 +134,7 @@ export default function AdminTags() {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Slug (для URL)</label>
+            <label className="form-label">{t("admin.tags.fieldSlug")}</label>
             <input
               type="text"
               className="form-control"
@@ -141,18 +143,18 @@ export default function AdminTags() {
               required
               maxLength={120}
               pattern="[a-z0-9\-]+"
-              title="Только латиница в нижнем регистре, цифры и дефис"
+              title={t("admin.tags.slugPatternTitle")}
             />
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Родительский тег</label>
+            <label className="form-label">{t("admin.tags.fieldParent")}</label>
             <select
               className="form-select"
               value={form.parent_id}
               onChange={(e) => setForm((f) => ({ ...f, parent_id: e.target.value }))}
             >
-              <option value="">— без родителя (тег верхнего уровня) —</option>
+              <option value="">{t("admin.tags.noParentOption")}</option>
               {flatTags
                 .filter((t) => (editingId === "new" ? true : t.id !== editingId))
                 .map((t) => (
@@ -168,16 +170,16 @@ export default function AdminTags() {
 
           <div className="admin-form_actions">
             <button type="submit" className="btn btn-dark" disabled={isSaving}>
-              {isSaving ? "Сохранение…" : "Сохранить"}
+              {isSaving ? t("common.saving") : t("common.save")}
             </button>
             <button type="button" className="btn btn-outline-secondary" onClick={cancelEdit}>
-              Отмена
+              {t("common.cancel")}
             </button>
           </div>
         </form>
       )}
 
-      {isLoading && <p className="admin-section_state">Загрузка…</p>}
+      {isLoading && <p className="admin-section_state">{t("common.loading")}</p>}
       {error && <p className="admin-section_state admin-section_state--error">{error}</p>}
 
       {!isLoading && !error && (
@@ -185,8 +187,8 @@ export default function AdminTags() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Название</th>
-                <th>Slug</th>
+                <th>{t("admin.tags.tableName")}</th>
+                <th>{t("admin.tags.tableSlug")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -204,14 +206,14 @@ export default function AdminTags() {
                       className="btn btn-sm btn-outline-dark me-2"
                       onClick={() => startEdit(tag)}
                     >
-                      Изменить
+                      {t("common.edit")}
                     </button>
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-danger"
                       onClick={() => handleDelete(tag)}
                     >
-                      Удалить
+                      {t("common.delete")}
                     </button>
                   </td>
                 </tr>
@@ -219,7 +221,7 @@ export default function AdminTags() {
               {flatTags.length === 0 && (
                 <tr>
                   <td colSpan={3} className="admin-table_empty">
-                    Тегов пока нет.
+                    {t("admin.tags.empty")}
                   </td>
                 </tr>
               )}

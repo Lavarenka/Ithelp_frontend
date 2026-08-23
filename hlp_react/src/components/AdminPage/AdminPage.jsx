@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import AdminArticles from "./AdminArticles";
 import AdminTags from "./AdminTags";
@@ -7,23 +8,27 @@ import AdminUsers from "./AdminUsers";
 import AdminComments from "./AdminComments";
 import "./AdminPage.css";
 
-const TABS = [
-  { key: "articles", label: "Статьи", icon: "fa-newspaper" },
-  { key: "tags", label: "Теги", icon: "fa-tags" },
-  { key: "users", label: "Пользователи", icon: "fa-users" },
-  { key: "comments", label: "Комментарии", icon: "fa-comments" },
-];
+function useTabs(t) {
+  return [
+    { key: "articles", label: t("admin.tabs.articles"), icon: "fa-newspaper" },
+    { key: "tags", label: t("admin.tabs.tags"), icon: "fa-tags" },
+    { key: "users", label: t("admin.tabs.users"), icon: "fa-users" },
+    { key: "comments", label: t("admin.tabs.comments"), icon: "fa-comments" },
+  ];
+}
 
 export default function AdminPage() {
+  const { t } = useTranslation();
   const { user, isAuthenticated, isAdmin, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState("articles");
+  const TABS = useTabs(t);
 
   // Пока не выяснили, залогинен ли пользователь (проверка токена ещё идёт) —
   // показываем нейтральную заглушку, чтобы не мигнуть "доступ запрещён" зря.
   if (isLoading) {
     return (
       <div className="admin-page">
-        <p className="admin-page_state">Загрузка…</p>
+        <p className="admin-page_state">{t("admin.loading")}</p>
       </div>
     );
   }
@@ -32,10 +37,10 @@ export default function AdminPage() {
     return (
       <div className="admin-page">
         <div className="admin-page_denied">
-          <h1>Доступ запрещён</h1>
-          <p>Эта страница доступна только администраторам.</p>
+          <h1>{t("admin.deniedTitle")}</h1>
+          <p>{t("admin.deniedText")}</p>
           <Link to="/" className="admin-page_denied-link">
-            « Вернуться на главную
+            {t("admin.backToSite")}
           </Link>
         </div>
       </div>
@@ -45,12 +50,12 @@ export default function AdminPage() {
   return (
     <div className="admin-page">
       <div className="admin-page_header">
-        <h1>Админка</h1>
+        <h1>{t("admin.title")}</h1>
         <p className="admin-page_subtitle">
-          Вы вошли как <strong>{user.username}</strong> (admin)
+          {t("admin.loggedInAsPrefix")} <strong>{user.username}</strong> {t("admin.loggedInAsSuffix")}
         </p>
         <Link to="/" className="admin-page_back">
-          « Вернуться на сайт
+          {t("admin.backToSite")}
         </Link>
       </div>
 

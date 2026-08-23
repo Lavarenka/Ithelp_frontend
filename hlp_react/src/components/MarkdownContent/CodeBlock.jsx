@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 /**
  * Блок кода с кнопкой "скопировать". Подсветку синтаксиса делает
@@ -7,6 +8,7 @@ import { useState } from "react";
  * "окно" с заголовком языка и кнопкой копирования.
  */
 export default function CodeBlock({ className, children }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const language = (className || "").replace("language-", "").replace("hljs", "").trim() || "text";
   const codeText = String(children).replace(/\n$/, "");
@@ -40,7 +42,7 @@ export default function CodeBlock({ className, children }) {
         <span className="code-block_lang">{language}</span>
         <button type="button" className="code-block_copy-btn" onClick={handleCopy}>
           <i className={copied ? "fa-solid fa-check" : "fa-regular fa-copy"}></i>
-          {copied ? " Скопировано" : " Копировать"}
+          {copied ? ` ${t("codeBlock.copied")}` : ` ${t("codeBlock.copy")}`}
         </button>
       </div>
       <pre className={className}>

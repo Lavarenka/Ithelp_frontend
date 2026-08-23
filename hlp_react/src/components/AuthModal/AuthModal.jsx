@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import "./AuthModal.css";
 
@@ -6,6 +7,7 @@ import "./AuthModal.css";
 // data-bs-target="#loginModal"). Переключение между режимами — без перезагрузки
 // модалки, просто меняем локальный state.
 export default function AuthModal() {
+  const { t } = useTranslation();
   const { login, register } = useAuth();
   const [mode, setMode] = useState("login"); // "login" | "register"
   const [username, setUsername] = useState("");
@@ -48,7 +50,7 @@ export default function AuthModal() {
       resetForm();
       closeModal();
     } catch (err) {
-      setError(err.message || "Что-то пошло не так");
+      setError(err.message || t("auth.genericError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -60,7 +62,7 @@ export default function AuthModal() {
         <div className="modal-content auth-modal">
           <div className="modal-header">
             <h5 className="modal-title" id="loginModalLabel">
-              {mode === "login" ? "Вход" : "Регистрация"}
+              {mode === "login" ? t("auth.loginTitle") : t("auth.registerTitle")}
             </h5>
             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
@@ -68,7 +70,7 @@ export default function AuthModal() {
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label" htmlFor="auth-username">
-                  {mode === "login" ? "Логин или email" : "Логин"}
+                  {mode === "login" ? t("auth.usernameOrEmail") : t("auth.username")}
                 </label>
                 <input
                   id="auth-username"
@@ -85,7 +87,7 @@ export default function AuthModal() {
               {mode === "register" && (
                 <div className="mb-3">
                   <label className="form-label" htmlFor="auth-email">
-                    Email
+                    {t("auth.email")}
                   </label>
                   <input
                     id="auth-email"
@@ -100,7 +102,7 @@ export default function AuthModal() {
 
               <div className="mb-3">
                 <label className="form-label" htmlFor="auth-password">
-                  Пароль
+                  {t("auth.password")}
                 </label>
                 <input
                   id="auth-password"
@@ -117,23 +119,23 @@ export default function AuthModal() {
               {error && <p className="auth-modal_error mb-3">{error}</p>}
 
               <button type="submit" className="btn btn-dark w-100" disabled={isSubmitting}>
-                {isSubmitting ? "Подождите…" : mode === "login" ? "Войти" : "Зарегистрироваться"}
+                {isSubmitting ? t("auth.submitWait") : mode === "login" ? t("auth.submitLogin") : t("auth.submitRegister")}
               </button>
             </form>
 
             <p className="auth-modal_switch mb-0">
               {mode === "login" ? (
                 <>
-                  Нет аккаунта?{" "}
+                  {t("auth.noAccount")}{" "}
                   <button type="button" className="auth-modal_switch-btn" onClick={() => switchMode("register")}>
-                    Зарегистрироваться
+                    {t("auth.submitRegister")}
                   </button>
                 </>
               ) : (
                 <>
-                  Уже есть аккаунт?{" "}
+                  {t("auth.haveAccount")}{" "}
                   <button type="button" className="auth-modal_switch-btn" onClick={() => switchMode("login")}>
-                    Войти
+                    {t("auth.submitLogin")}
                   </button>
                 </>
               )}

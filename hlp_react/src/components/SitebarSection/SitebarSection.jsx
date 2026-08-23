@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./SitebarSection.css";
 import { API_BASE_URL } from "../../api";
 
@@ -10,6 +11,7 @@ const POPULAR_LIMIT = 4;
 const POLL_INTERVAL = 20000;
 
 export default function Sitebar() {
+  const { t } = useTranslation();
   const [popularArticles, setPopularArticles] = useState([]);
 
   const fetchPopular = useCallback(async ({ signal } = {}) => {
@@ -62,13 +64,13 @@ export default function Sitebar() {
     <>
       <div className="layout_sidebar sitebar">
           <div className="advertising mb-3">
-            <span className="advertising_label">реклама</span>
-            <p className="mb-0">обучение питонычу онлайн за 30 мин</p>
+            <span className="advertising_label">{t("sidebar.adLabel")}</span>
+            <p className="mb-0">{t("sidebar.adText")}</p>
           </div>
           {popularArticles.length > 0 && (
             <div className="star">
               <div className="star_h1">
-                <h1>Популярные статьи:</h1>
+                <h1>{t("sidebar.popularTitle")}</h1>
               </div>
               <hr />
               {popularArticles.map((article) => (
@@ -78,7 +80,7 @@ export default function Sitebar() {
                   </div>
 
                   <div className="star_icons d-flex">
-                    <div className="d-flex me-3" title="Количество просмотров">
+                    <div className="d-flex me-3" title={t("sidebar.viewsTitle")}>
                       <div>
                         <i className="fa-regular fa-eye"></i>
                       </div>
@@ -86,7 +88,7 @@ export default function Sitebar() {
                         <p>{article.views}</p>
                       </div>
                     </div>
-                    <div className="d-flex me-3" title="Комментарии">
+                    <div className="d-flex me-3" title={t("sidebar.commentsTitle")}>
                       <div>
                         <i className="fa-regular fa-comment"></i>
                       </div>

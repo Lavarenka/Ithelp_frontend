@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { apiRequest } from "../../api";
 
 const PAGE_SIZE = 10;
@@ -6,6 +7,7 @@ const PAGE_SIZE = 10;
 const EMPTY_FORM = { title: "", content: "", tag_ids: [] };
 
 export default function AdminArticles() {
+  const { t } = useTranslation();
   const [articles, setArticles] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
@@ -133,7 +135,7 @@ export default function AdminArticles() {
   };
 
   const handleDelete = async (article) => {
-    if (!window.confirm(`Удалить статью «${article.title}»? Это действие необратимо.`)) return;
+    if (!window.confirm(t("admin.articles.confirmDelete", { title: article.title }))) return;
     try {
       await apiRequest(`/articles/${article.id}`, { method: "DELETE" });
       await loadArticles();
@@ -149,26 +151,26 @@ export default function AdminArticles() {
           <input
             type="text"
             className="form-control"
-            placeholder="Поиск по заголовку…"
+            placeholder={t("admin.articles.searchPlaceholder")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
           <button type="submit" className="btn btn-outline-dark">
-            Найти
+            {t("admin.articles.searchButton")}
           </button>
         </form>
         <button type="button" className="btn btn-dark" onClick={startCreate}>
           <i className="fa-solid fa-plus me-2"></i>
-          Новая статья
+          {t("admin.articles.newArticle")}
         </button>
       </div>
 
       {editingId !== null && (
         <form className="admin-form" onSubmit={handleSave}>
-          <h3>{editingId === "new" ? "Новая статья" : "Редактирование статьи"}</h3>
+          <h3>{editingId === "new" ? t("admin.articles.formTitleNew") : t("admin.articles.formTitleEdit")}</h3>
 
           <div className="mb-3">
-            <label className="form-label">Заголовок</label>
+            <label className="form-label">{t("admin.articles.fieldTitle")}</label>
             <input
               type="text"
               className="form-control"
@@ -180,7 +182,7 @@ export default function AdminArticles() {
           </div>
 
           <div className="mb-3">
-            <label className="form-label">Текст статьи</label>
+            <label className="form-label">{t("admin.articles.fieldContent")}</label>
             <textarea
               className="form-control"
               rows={6}
@@ -192,7 +194,7 @@ export default function AdminArticles() {
 
           {allTags.length > 0 && (
             <div className="mb-3">
-              <label className="form-label">Теги</label>
+              <label className="form-label">{t("admin.articles.fieldTags")}</label>
               <div className="admin-form_tags">
                 {allTags.map((tag) => (
                   <label key={tag.id} className="admin-form_tag-checkbox">
@@ -212,16 +214,16 @@ export default function AdminArticles() {
 
           <div className="admin-form_actions">
             <button type="submit" className="btn btn-dark" disabled={isSaving}>
-              {isSaving ? "Сохранение…" : "Сохранить"}
+              {isSaving ? t("common.saving") : t("common.save")}
             </button>
             <button type="button" className="btn btn-outline-secondary" onClick={cancelEdit}>
-              Отмена
+              {t("common.cancel")}
             </button>
           </div>
         </form>
       )}
 
-      {isLoading && <p className="admin-section_state">Загрузка…</p>}
+      {isLoading && <p className="admin-section_state">{t("common.loading")}</p>}
       {error && <p className="admin-section_state admin-section_state--error">{error}</p>}
 
       {!isLoading && !error && (
@@ -230,11 +232,11 @@ export default function AdminArticles() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Заголовок</th>
-                  <th>Автор</th>
-                  <th>Теги</th>
-                  <th>Просмотры</th>
+                  <th>{t("admin.articles.tableId")}</th>
+                  <th>{t("admin.articles.tableTitle")}</th>
+                  <th>{t("admin.articles.tableAuthor")}</th>
+                  <th>{t("admin.articles.tableTags")}</th>
+                  <th>{t("admin.articles.tableViews")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -258,14 +260,14 @@ export default function AdminArticles() {
                         className="btn btn-sm btn-outline-dark me-2"
                         onClick={() => startEdit(article)}
                       >
-                        Изменить
+                        {t("common.edit")}
                       </button>
                       <button
                         type="button"
                         className="btn btn-sm btn-outline-danger"
                         onClick={() => handleDelete(article)}
                       >
-                        Удалить
+                        {t("common.delete")}
                       </button>
                     </td>
                   </tr>
@@ -273,7 +275,7 @@ export default function AdminArticles() {
                 {articles.length === 0 && (
                   <tr>
                     <td colSpan={6} className="admin-table_empty">
-                      Ничего не найдено.
+                      {t("common.notFound")}
                     </td>
                   </tr>
                 )}
@@ -288,10 +290,10 @@ export default function AdminArticles() {
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
             >
-              « Назад
+              {t("pagination.prev")}
             </button>
             <span>
-              Страница {page + 1} из {totalPages} ({total} всего)
+              {t("pagination.pageOfTotal", { page: page + 1, totalPages, total })}
             </span>
             <button
               type="button"
@@ -299,7 +301,7 @@ export default function AdminArticles() {
               disabled={page + 1 >= totalPages}
               onClick={() => setPage((p) => p + 1)}
             >
-              Вперёд »
+              {t("pagination.next")}
             </button>
           </div>
         </>

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import i18n from "../i18n";
 import { API_BASE_URL } from "../api";
 
 const AuthContext = createContext(null);
@@ -94,7 +95,7 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ username_or_email: usernameOrEmail, password }),
       });
       if (!response.ok) {
-        throw new Error(await extractErrorMessage(response, "Не удалось войти"));
+        throw new Error(await extractErrorMessage(response, i18n.t("auth.loginFailed")));
       }
       const data = await response.json();
       applySession(data.access_token, data.user);
@@ -111,7 +112,7 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ username, email, password }),
       });
       if (!response.ok) {
-        throw new Error(await extractErrorMessage(response, "Не удалось зарегистрироваться"));
+        throw new Error(await extractErrorMessage(response, i18n.t("auth.registerFailed")));
       }
       const data = await response.json();
       applySession(data.access_token, data.user);

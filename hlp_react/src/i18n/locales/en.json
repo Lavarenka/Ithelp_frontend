@@ -1,0 +1,194 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "back": "« Back",
+    "backToArticles": "« Back to articles",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "notFound": "Nothing found.",
+    "requestError": "Request error: {{status}}"
+  },
+  "pagination": {
+    "prev": "« Prev",
+    "next": "Next »",
+    "pageOf": "Page {{page}} of {{totalPages}}",
+    "pageOfTotal": "Page {{page}} of {{totalPages}} ({{total}} total)"
+  },
+  "header": {
+    "home": "Home",
+    "about": "About",
+    "menu": "Menu",
+    "search": "Search",
+    "favorites": "Favorites",
+    "login": "Log in",
+    "admin": "Admin",
+    "logout": "Log out",
+    "languageTitle": "Site language",
+    "languageAriaLabel": "Switch site language"
+  },
+  "footer": {
+    "brand": "it_hlp blog © 2024"
+  },
+  "sidebar": {
+    "adLabel": "advertisement",
+    "adText": "Learn Pythonych online in 30 min",
+    "popularTitle": "Popular articles:",
+    "viewsTitle": "Number of views",
+    "commentsTitle": "Comments"
+  },
+  "cookieBanner": {
+    "ariaLabel": "Data usage notice",
+    "text": "We use your browser's local storage for sign-in and other site settings. By continuing to use the site, you agree to this.",
+    "accept": "Got it"
+  },
+  "articleFeed": {
+    "emptyDefault": "No articles yet.",
+    "emptyTag": "There are no articles under this tag yet.",
+    "emptyFavorites": "No favorite articles yet — click the bookmark icon on an article to add one.",
+    "loading": "Loading articles…",
+    "loadError": "Couldn't load articles: {{error}}",
+    "loadingMore": "Loading more…",
+    "allLoaded": "That's all the articles."
+  },
+  "articleCard": {
+    "authorFallback": "admin",
+    "timeFallback": "14 minutes ago",
+    "shareTitle": "Share",
+    "readMore": "Read more"
+  },
+  "articlePage": {
+    "notFound": "Article not found",
+    "loading": "Loading article…",
+    "views": "Views: {{count}}"
+  },
+  "tagPage": {
+    "title": "Articles tagged: {{tag}}",
+    "notFound": "Tag not found"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "guestNotice": "Log in to see your favorite articles.",
+    "addHint": "Log in to add to favorites",
+    "addTooltip": "Add to favorites",
+    "removeTooltip": "Remove from favorites",
+    "loginRequiredError": "Log in to add articles to favorites"
+  },
+  "comments": {
+    "title": "Comments",
+    "like": "Like",
+    "dislike": "Dislike",
+    "placeholder": "Leave a comment…",
+    "submit": "Post",
+    "submitting": "Posting…",
+    "pendingNotice": "Your comment has been sent and is awaiting moderator review. It will appear here once published.",
+    "guestNotice": "Log in to leave a comment.",
+    "loading": "Loading comments…",
+    "empty": "No comments yet — be the first!"
+  },
+  "auth": {
+    "loginTitle": "Log in",
+    "registerTitle": "Sign up",
+    "usernameOrEmail": "Username or email",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "submitWait": "Please wait…",
+    "submitLogin": "Log in",
+    "submitRegister": "Sign up",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "genericError": "Something went wrong",
+    "loginFailed": "Couldn't log in",
+    "registerFailed": "Couldn't sign up"
+  },
+  "codeBlock": {
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "admin": {
+    "loading": "Loading…",
+    "deniedTitle": "Access denied",
+    "deniedText": "This page is only available to administrators.",
+    "backToSite": "« Back to site",
+    "title": "Admin panel",
+    "loggedInAsPrefix": "Logged in as",
+    "loggedInAsSuffix": "(admin)",
+    "tabs": {
+      "articles": "Articles",
+      "tags": "Tags",
+      "users": "Users",
+      "comments": "Comments"
+    },
+    "articles": {
+      "searchPlaceholder": "Search by title…",
+      "searchButton": "Search",
+      "newArticle": "New article",
+      "formTitleNew": "New article",
+      "formTitleEdit": "Edit article",
+      "fieldTitle": "Title",
+      "fieldContent": "Article text",
+      "fieldTags": "Tags",
+      "tableId": "ID",
+      "tableTitle": "Title",
+      "tableAuthor": "Author",
+      "tableTags": "Tags",
+      "tableViews": "Views",
+      "confirmDelete": "Delete article “{{title}}”? This cannot be undone."
+    },
+    "tags": {
+      "newTag": "New tag",
+      "formTitleNew": "New tag",
+      "formTitleEdit": "Edit tag",
+      "fieldName": "Name",
+      "fieldSlug": "Slug (for URL)",
+      "slugPatternTitle": "Lowercase Latin letters, digits, and hyphens only",
+      "fieldParent": "Parent tag",
+      "noParentOption": "— no parent (top-level tag) —",
+      "tableName": "Name",
+      "tableSlug": "Slug",
+      "empty": "No tags yet.",
+      "confirmDeleteWithChildren": "Delete tag “{{name}}”? Its nested subtags will also be deleted. This cannot be undone.",
+      "confirmDelete": "Delete tag “{{name}}”? This cannot be undone."
+    },
+    "users": {
+      "tableId": "ID",
+      "tableUsername": "Username",
+      "tableEmail": "Email",
+      "tableRole": "Role",
+      "tableStatus": "Status",
+      "tableRegistered": "Registered",
+      "you": " (you)",
+      "statusActive": "active",
+      "statusBlocked": "blocked",
+      "makeUser": "Make user",
+      "makeAdmin": "Make admin",
+      "block": "Block",
+      "unblock": "Unblock",
+      "empty": "No users yet.",
+      "alertCannotDemoteSelf": "You can't remove your own admin rights.",
+      "alertCannotBlockSelf": "You can't block yourself.",
+      "alertCannotDeleteSelf": "You can't delete yourself.",
+      "confirmDelete": "Delete user “{{username}}”? This cannot be undone."
+    },
+    "comments": {
+      "filterPending": "Pending review",
+      "filterApproved": "Published",
+      "filterRejected": "Rejected",
+      "filterAll": "All",
+      "statusPending": "Pending review",
+      "statusApproved": "Published",
+      "statusRejected": "Rejected",
+      "tableArticle": "Article",
+      "tableAuthor": "Author",
+      "tableText": "Text",
+      "tableDate": "Date",
+      "tableStatus": "Status",
+      "approve": "Approve",
+      "reject": "Reject",
+      "confirmDelete": "Delete the comment by “{{username}}”? This cannot be undone."
+    }
+  }
+}

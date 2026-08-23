@@ -2,7 +2,16 @@
     background: #212020FF;
     box-shadow: 0 10px 10px rgba(0, 0, 0, .3);
     padding: 1rem 0;
-    transition: padding .3s ease;
+    transition: padding .3s ease, background-color .4s ease;
+}
+
+/* Лёгкая красноватая подсветка шапки на русской версии сайта (см.
+   LanguageToggle/isEn в HeaderSection.jsx) — переключается плавно за счёт
+   transition на background-color выше. Цвет остаётся тёмным, тон тот же
+   почти-чёрный, просто с заметно более тёплым красным оттенком вместо
+   нейтрально-коричневого #212020. */
+.header--ru {
+    background: rgb(27, 18, 18);
 }
 
 /* Компактный режим шапки — включается по классу при прокрутке вниз (см. HeaderSection.jsx) */
@@ -72,6 +81,40 @@
 
     .header_icons .header_search {
         padding: 0.375rem 0.5rem;
+    }
+}
+
+/* Ниже 1200px три блока шапки (лого / меню / иконки) больше не жмутся
+   в одну строку через Bootstrap-колонки — вместо этого весь .header_row
+   становится колонкой (flex-column) и центрируется по горизонтали, каждый
+   блок занимает свою строку друг под другом: лого, затем меню, затем
+   иконки. order-* классы в JSX (order-2/order-1/order-3 на десктопе)
+   при этом продолжают работать и в колонке — flex-direction: column
+   уважает order так же, как row. */
+@media (max-width: 1199.98px) {
+    .header_row {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .header_row > [class*="col"] {
+        width: auto;
+        max-width: 100%;
+        flex: 0 0 auto;
+    }
+
+    .header_row > .logo {
+        order: 1;
+        margin-bottom: 0.6rem;
+    }
+
+    .header_row > .header_row_menu {
+        order: 2;
+        margin-bottom: 0.6rem;
+    }
+
+    .header_row > .header_icons {
+        order: 3;
     }
 }
 

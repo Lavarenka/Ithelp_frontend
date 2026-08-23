@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { apiRequest } from "../../api";
 import { useAuth } from "../../context/AuthContext";
 import "./CommentSection.css";
@@ -8,9 +9,9 @@ const PAGE_SIZE = 10;
 // админом комментарий появился у читателя без ручного обновления страницы.
 const POLL_INTERVAL = 15000;
 
-function formatDate(iso) {
+function formatDate(iso, locale) {
   const date = new Date(iso);
-  return date.toLocaleString("ru-RU", {
+  return date.toLocaleString(locale === "en" ? "en-US" : "ru-RU", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -20,6 +21,7 @@ function formatDate(iso) {
 }
 
 function CommentVotes({ comment, onVote, disabled }) {
+  const { t } = useTranslation();
   return (
     <div className="comment-votes">
       <button
@@ -27,7 +29,7 @@ function CommentVotes({ comment, onVote, disabled }) {
         className={`comment-votes_btn ${comment.my_vote === 1 ? "comment-votes_btn--active-like" : ""}`}
         onClick={() => onVote(comment, 1)}
         disabled={disabled}
-        title="Нравится"
+        title={t("comments.like")}
       >
         <i className="fa-solid fa-thumbs-up"></i>
         <span>{comment.likes_count}</span>
@@ -37,7 +39,7 @@ function CommentVotes({ comment, onVote, disabled }) {
         className={`comment-votes_btn ${comment.my_vote === -1 ? "comment-votes_btn--active-dislike" : ""}`}
         onClick={() => onVote(comment, -1)}
         disabled={disabled}
-        title="Не нравится"
+        title={t("comments.dislike")}
       >
         <i className="fa-solid fa-thumbs-down"></i>
         <span>{comment.dislikes_count}</span>
@@ -47,6 +49,7 @@ function CommentVotes({ comment, onVote, disabled }) {
 }
 
 export default function CommentSection({ articleId }) {
+  const { t, i18n } = useTranslation();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   const [comments, setComments] = useState([]);
@@ -183,14 +186,14 @@ export default function CommentSection({ articleId }) {
   return (
     <div className="comment-section">
       <h3 className="comment-section_title">
-        Комментарии {total > 0 && <span className="comment-section_count">({total})</span>}
+        {t("comments.title")} {total > 0 && <span className="comment-section_count">({total})</span>}
       </h3>
 
       {!authLoading && isAuthenticated && (
         <form className="comment-form" onSubmit={handleSubmit}>
           <textarea
             className="form-control comment-form_textarea"
-            placeholder="Оставьте комментарий…"
+            placeholder={t("comments.placeholder")}
             value={text}
             onChange={(e) => setText(e.target.value)}
             maxLength={2000}
@@ -200,13 +203,13 @@ export default function CommentSection({ articleId }) {
           <div className="comment-form_footer">
             {submitError && <span className="comment-form_error">{submitError}</span>}
             <button type="submit" className="btn btn-dark" disabled={isSubmitting || !text.trim()}>
-              {isSubmitting ? "Отправка…" : "Отправить"}
+              {isSubmitting ? t("comments.submitting") : t("comments.submit")}
             </button>
           </div>
           {pendingCommentId != null && (
             <p className="comment-form_notice">
               <i className="fa-regular fa-clock me-2"></i>
-              Комментарий отправлен и обрабатывается администратором. Он появится здесь после публикации.
+              {t("comments.pendingNotice")}
             </p>
           )}
         </form>
@@ -214,17 +217,17 @@ export default function CommentSection({ articleId }) {
 
       {!authLoading && !isAuthenticated && (
         <p className="comment-section_guest-notice">
-          Чтобы оставить комментарий, нужно войти в аккаунт.
+          {t("comments.guestNotice")}
         </p>
       )}
 
-      {isLoading && <p className="comment-section_state">Загрузка комментариев…</p>}
+      {isLoading && <p className="comment-section_state">{t("comments.loading")}</p>}
       {error && <p className="comment-section_state comment-section_state--error">{error}</p>}
 
       {!isLoading && !error && (
         <>
           {comments.length === 0 && (
-            <p className="comment-section_empty">Пока нет комментариев — станьте первым!</p>
+            <p className="comment-section_empty">{t("comments.empty")}</p>
           )}
 
           <ul className="comment-list">
@@ -232,7 +235,7 @@ export default function CommentSection({ articleId }) {
               <li className="comment-item" key={comment.id}>
                 <div className="comment-item_header">
                   <span className="comment-item_author">{comment.author.username}</span>
-                  <span className="comment-item_date">{formatDate(comment.created_at)}</span>
+                  <span className="comment-item_date">{formatDate(comment.created_at, i18n.language)}</span>
                 </div>
                 <p className="comment-item_text">{comment.text}</p>
                 <CommentVotes comment={comment} onVote={handleVote} disabled={!isAuthenticated || votingIds.has(comment.id)} />
@@ -248,10 +251,10 @@ export default function CommentSection({ articleId }) {
                 disabled={page === 0}
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
               >
-                « Назад
+                {t("pagination.prev")}
               </button>
               <span>
-                Страница {page + 1} из {totalPages}
+                {t("pagination.pageOf", { page: page + 1, totalPages })}
               </span>
               <button
                 type="button"
@@ -259,7 +262,7 @@ export default function CommentSection({ articleId }) {
                 disabled={page + 1 >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
               >
-                Вперёд »
+                {t("pagination.next")}
               </button>
             </div>
           )}

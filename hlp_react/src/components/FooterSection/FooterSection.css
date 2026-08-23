@@ -16,6 +16,14 @@
     bottom: 0;
     width: 100%;
     z-index: 900;
+    transition: background-color .4s ease;
+}
+
+/* Та же лёгкая красноватая подсветка на русской версии сайта, что и у
+   шапки (см. .header--ru в Header.css) — один и тот же цвет и тайминг
+   перехода, чтобы шапка и подвал переключались синхронно и одинаково. */
+.footer--ru {
+    background: rgb(27, 18, 18);
 }
 
 .footer_title {
@@ -25,6 +33,31 @@
        счётчика просмотров на карточке статьи). Сам размер текста не
        трогаем — только убираем лишний отступ. */
     margin: 0;
+}
+
+/* Ниже 1200px — та же логика, что и у шапки (см. .header_row в Header.css):
+   два блока подвала (текст с годом / иконки соцсетей) больше не делят одну
+   строку через col-md-*, а идут друг под другом по центру. Из-за этого
+   подвал становится выше — соответствующий рост --footer-height см. в
+   index.css, иначе контент снова начнёт заезжать под приклеенный подвал
+   (та же история, что уже чинили раньше). */
+@media (max-width: 1199.98px) {
+    .footer_row {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .footer_row > [class*="col"] {
+        width: auto;
+        max-width: 100%;
+        flex: 0 0 auto;
+    }
+
+    .footer_row > .footer_socials {
+        justify-content: center !important;
+        margin-top: 0.5rem;
+    }
 }
 
 /*  ----------------- /footer -------------------  */

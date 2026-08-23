@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { API_BASE_URL } from "../../api";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import MarkdownContent from "../MarkdownContent/MarkdownContent";
 import CommentSection from "../CommentSection/CommentSection";
 
 const ArticlePage = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -22,8 +24,8 @@ const ArticlePage = () => {
         if (!response.ok) {
           throw new Error(
             response.status === 404
-              ? "Статья не найдена"
-              : `Ошибка запроса: ${response.status}`
+              ? t("articlePage.notFound")
+              : t("common.requestError", { status: response.status })
           );
         }
         const data = await response.json();
@@ -47,7 +49,7 @@ const ArticlePage = () => {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, t]);
 
   const tags = article?.tags ?? [];
 
@@ -56,10 +58,10 @@ const ArticlePage = () => {
       <div className="body_row">
         <div className="body article_page">
           <Link to="/" className="article_back mb-3 d-inline-block">
-            &laquo; Назад к статьям
+            {t("common.backToArticles")}
           </Link>
 
-          {loading && <p className="body_state">Загрузка статьи…</p>}
+          {loading && <p className="body_state">{t("articlePage.loading")}</p>}
           {error && <p className="body_state text-danger">{error}</p>}
           {!loading && !error && article && (
             <>
@@ -68,7 +70,7 @@ const ArticlePage = () => {
                 <FavoriteButton articleId={article.id} size="large" />
               </div>
               <p className="card_time mb-3">
-                Просмотров: {article.views ?? 0}
+                {t("articlePage.views", { count: article.views ?? 0 })}
               </p>
               {tags.length > 0 && (
                 <div className="d-flex card_tags mb-3">

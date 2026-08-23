@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import Header from "./components/HeaderSection/HeaderSection";
 import BodySection from "./components/BodySection/BodySection";
 import Sitebar from "./components/SitebarSection/SitebarSection";
@@ -16,9 +17,20 @@ function App() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
 
+  // Язык сайта — теперь настоящий i18next, а не локальная заглушка.
+  // i18n.language уже учитывает куку (см. src/i18n/index.js: если куки нет —
+  // язык "en" по умолчанию, это жёсткое требование). isEn здесь оставлен как
+  // производное значение — им по-прежнему пользуются header--ru/footer--ru
+  // для лёгкой красноватой подсветки на русской версии.
+  const { i18n } = useTranslation();
+  const isEn = i18n.language === "en";
+  const toggleLanguage = () => {
+    i18n.changeLanguage(isEn ? "ru" : "en");
+  };
+
   return (
     <div className="wrapper">
-      <Header />
+      <Header isEn={isEn} onToggleLanguage={toggleLanguage} />
 
       <main className="main">
         <div className="page-container">
@@ -39,7 +51,7 @@ function App() {
           )}
         </div>
       </main>
-      <Footer />
+      <Footer isEn={isEn} />
 
       <CookieBanner />
     </div>

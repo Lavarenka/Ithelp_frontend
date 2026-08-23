@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import i18n from "../i18n";
 import { apiRequest } from "../api";
 import { useAuth } from "./AuthContext";
 
@@ -43,7 +44,7 @@ export function FavoritesProvider({ children }) {
   const toggleFavorite = useCallback(
     async (articleId) => {
       if (!isAuthenticated) {
-        throw new Error("Войдите, чтобы добавлять статьи в избранное");
+        throw new Error(i18n.t("favorites.loginRequiredError"));
       }
       if (pendingIds.has(articleId)) return; // защита от дабл-клика во время запроса
 

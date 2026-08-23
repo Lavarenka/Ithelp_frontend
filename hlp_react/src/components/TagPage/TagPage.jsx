@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import ArticleFeed from "../ArticleFeed/ArticleFeed";
 import { API_BASE_URL } from "../../api";
 
 export default function TagPage() {
+  const { t } = useTranslation();
   const { slug } = useParams();
   const [tag, setTag] = useState(null);
   const [tagError, setTagError] = useState(null);
@@ -18,7 +20,9 @@ export default function TagPage() {
         const response = await fetch(`${API_BASE_URL}/tags/${slug}`);
         if (!response.ok) {
           throw new Error(
-            response.status === 404 ? "Тег не найден" : `Ошибка запроса: ${response.status}`
+            response.status === 404
+              ? t("tagPage.notFound")
+              : t("common.requestError", { status: response.status })
           );
         }
         const data = await response.json();
@@ -32,20 +36,20 @@ export default function TagPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, t]);
 
   return (
     <div className="layout_main">
       <div className="body_row">
         <div className="body">
           <Link to="/" className="article_back mb-3 d-inline-block">
-            &laquo; Назад к статьям
+            {t("common.backToArticles")}
           </Link>
 
           {tagError && <p className="body_state text-danger">{tagError}</p>}
           {!tagError && (
             <h1 className="tag_page_title">
-              Статьи по тегу: {tag ? tag.name : slug}
+              {t("tagPage.title", { tag: tag ? tag.name : slug })}
             </h1>
           )}
 
@@ -53,7 +57,7 @@ export default function TagPage() {
             <ArticleFeed
               key={slug}
               listUrl={`/tags/${slug}/articles`}
-              emptyMessage="По этому тегу пока нет статей."
+              emptyMessage={t("articleFeed.emptyTag")}
             />
           )}
         </div>

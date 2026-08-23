@@ -1,0 +1,194 @@
+{
+  "common": {
+    "loading": "Загрузка…",
+    "back": "« Назад",
+    "backToArticles": "« Назад к статьям",
+    "edit": "Изменить",
+    "delete": "Удалить",
+    "save": "Сохранить",
+    "saving": "Сохранение…",
+    "cancel": "Отмена",
+    "notFound": "Ничего не найдено.",
+    "requestError": "Ошибка запроса: {{status}}"
+  },
+  "pagination": {
+    "prev": "« Назад",
+    "next": "Вперёд »",
+    "pageOf": "Страница {{page}} из {{totalPages}}",
+    "pageOfTotal": "Страница {{page}} из {{totalPages}} (всего {{total}})"
+  },
+  "header": {
+    "home": "Главная",
+    "about": "О нас",
+    "menu": "Меню",
+    "search": "Поиск",
+    "favorites": "Избранное",
+    "login": "Войти",
+    "admin": "Админка",
+    "logout": "Выйти",
+    "languageTitle": "Язык сайта",
+    "languageAriaLabel": "Переключить язык сайта"
+  },
+  "footer": {
+    "brand": "it_hlp blog © 2024"
+  },
+  "sidebar": {
+    "adLabel": "реклама",
+    "adText": "Изучи Пайтоныч онлайн за 30 минут",
+    "popularTitle": "Популярные статьи:",
+    "viewsTitle": "Количество просмотров",
+    "commentsTitle": "Комментарии"
+  },
+  "cookieBanner": {
+    "ariaLabel": "Уведомление об использовании данных",
+    "text": "Мы используем локальное хранилище вашего браузера для входа в систему и других настроек сайта. Продолжая пользоваться сайтом, вы соглашаетесь с этим.",
+    "accept": "Понятно"
+  },
+  "articleFeed": {
+    "emptyDefault": "Пока нет статей.",
+    "emptyTag": "По этому тегу пока нет статей.",
+    "emptyFavorites": "Пока нет избранных статей — нажмите на значок закладки у статьи, чтобы добавить.",
+    "loading": "Загрузка статей…",
+    "loadError": "Не удалось загрузить статьи: {{error}}",
+    "loadingMore": "Загрузка ещё…",
+    "allLoaded": "Это все статьи."
+  },
+  "articleCard": {
+    "authorFallback": "admin",
+    "timeFallback": "14 минут назад",
+    "shareTitle": "Поделиться",
+    "readMore": "Читать далее"
+  },
+  "articlePage": {
+    "notFound": "Статья не найдена",
+    "loading": "Загрузка статьи…",
+    "views": "Просмотров: {{count}}"
+  },
+  "tagPage": {
+    "title": "Статьи по тегу: {{tag}}",
+    "notFound": "Тег не найден"
+  },
+  "favorites": {
+    "title": "Избранное",
+    "guestNotice": "Войдите, чтобы видеть избранные статьи.",
+    "addHint": "Войдите, чтобы добавить в избранное",
+    "addTooltip": "Добавить в избранное",
+    "removeTooltip": "Убрать из избранного",
+    "loginRequiredError": "Войдите, чтобы добавлять статьи в избранное"
+  },
+  "comments": {
+    "title": "Комментарии",
+    "like": "Нравится",
+    "dislike": "Не нравится",
+    "placeholder": "Оставьте комментарий…",
+    "submit": "Отправить",
+    "submitting": "Отправка…",
+    "pendingNotice": "Комментарий отправлен и ожидает проверки модератором. Он появится здесь после публикации.",
+    "guestNotice": "Войдите, чтобы оставить комментарий.",
+    "loading": "Загрузка комментариев…",
+    "empty": "Пока нет комментариев — будьте первым!"
+  },
+  "auth": {
+    "loginTitle": "Вход",
+    "registerTitle": "Регистрация",
+    "usernameOrEmail": "Имя пользователя или email",
+    "username": "Имя пользователя",
+    "email": "Email",
+    "password": "Пароль",
+    "submitWait": "Подождите…",
+    "submitLogin": "Войти",
+    "submitRegister": "Зарегистрироваться",
+    "noAccount": "Нет аккаунта?",
+    "haveAccount": "Уже есть аккаунт?",
+    "genericError": "Что-то пошло не так",
+    "loginFailed": "Не удалось войти",
+    "registerFailed": "Не удалось зарегистрироваться"
+  },
+  "codeBlock": {
+    "copy": "Копировать",
+    "copied": "Скопировано"
+  },
+  "admin": {
+    "loading": "Загрузка…",
+    "deniedTitle": "Доступ запрещён",
+    "deniedText": "Эта страница доступна только администраторам.",
+    "backToSite": "« Назад на сайт",
+    "title": "Админ-панель",
+    "loggedInAsPrefix": "Вы вошли как",
+    "loggedInAsSuffix": "(админ)",
+    "tabs": {
+      "articles": "Статьи",
+      "tags": "Теги",
+      "users": "Пользователи",
+      "comments": "Комментарии"
+    },
+    "articles": {
+      "searchPlaceholder": "Поиск по заголовку…",
+      "searchButton": "Найти",
+      "newArticle": "Новая статья",
+      "formTitleNew": "Новая статья",
+      "formTitleEdit": "Редактирование статьи",
+      "fieldTitle": "Заголовок",
+      "fieldContent": "Текст статьи",
+      "fieldTags": "Теги",
+      "tableId": "ID",
+      "tableTitle": "Заголовок",
+      "tableAuthor": "Автор",
+      "tableTags": "Теги",
+      "tableViews": "Просмотры",
+      "confirmDelete": "Удалить статью «{{title}}»? Это действие необратимо."
+    },
+    "tags": {
+      "newTag": "Новый тег",
+      "formTitleNew": "Новый тег",
+      "formTitleEdit": "Редактирование тега",
+      "fieldName": "Название",
+      "fieldSlug": "Слаг (для URL)",
+      "slugPatternTitle": "Только латинские строчные буквы, цифры и дефисы",
+      "fieldParent": "Родительский тег",
+      "noParentOption": "— без родителя (тег верхнего уровня) —",
+      "tableName": "Название",
+      "tableSlug": "Слаг",
+      "empty": "Пока нет тегов.",
+      "confirmDeleteWithChildren": "Удалить тег «{{name}}»? Вложенные подтеги также будут удалены. Это действие необратимо.",
+      "confirmDelete": "Удалить тег «{{name}}»? Это действие необратимо."
+    },
+    "users": {
+      "tableId": "ID",
+      "tableUsername": "Имя пользователя",
+      "tableEmail": "Email",
+      "tableRole": "Роль",
+      "tableStatus": "Статус",
+      "tableRegistered": "Регистрация",
+      "you": " (вы)",
+      "statusActive": "активен",
+      "statusBlocked": "заблокирован",
+      "makeUser": "Сделать пользователем",
+      "makeAdmin": "Сделать админом",
+      "block": "Заблокировать",
+      "unblock": "Разблокировать",
+      "empty": "Пока нет пользователей.",
+      "alertCannotDemoteSelf": "Нельзя снять права admin с самого себя.",
+      "alertCannotBlockSelf": "Нельзя заблокировать самого себя.",
+      "alertCannotDeleteSelf": "Нельзя удалить самого себя.",
+      "confirmDelete": "Удалить пользователя «{{username}}»? Это действие необратимо."
+    },
+    "comments": {
+      "filterPending": "На модерации",
+      "filterApproved": "Опубликованы",
+      "filterRejected": "Отклонены",
+      "filterAll": "Все",
+      "statusPending": "На модерации",
+      "statusApproved": "Опубликован",
+      "statusRejected": "Отклонён",
+      "tableArticle": "Статья",
+      "tableAuthor": "Автор",
+      "tableText": "Текст",
+      "tableDate": "Дата",
+      "tableStatus": "Статус",
+      "approve": "Одобрить",
+      "reject": "Отклонить",
+      "confirmDelete": "Удалить комментарий пользователя «{{username}}»? Это действие необратимо."
+    }
+  }
+}

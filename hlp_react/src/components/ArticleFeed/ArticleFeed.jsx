@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import ArticleCard from "../CardSection/ArticleCard";
 import { apiRequest } from "../../api";
 
@@ -17,7 +18,9 @@ const COUNTS_POLL_INTERVAL = 20000;
  * поддерживает ?skip=&limit= (например "/articles/" или "/tags/frontend/articles").
  * Вынесено из BodySection, чтобы тот же механизм переиспользовать на странице тега.
  */
-export default function ArticleFeed({ listUrl, emptyMessage = "Пока нет статей." }) {
+export default function ArticleFeed({ listUrl, emptyMessage }) {
+  const { t } = useTranslation();
+  const resolvedEmptyMessage = emptyMessage ?? t("articleFeed.emptyDefault");
   const [articles, setArticles] = useState([]);
   const [total, setTotal] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -133,15 +136,15 @@ export default function ArticleFeed({ listUrl, emptyMessage = "Пока нет �
 
   return (
     <>
-      {loading && <p className="body_state">Загрузка статей…</p>}
+      {loading && <p className="body_state">{t("articleFeed.loading")}</p>}
       {error && (
         <p className="body_state text-danger">
-          Не удалось загрузить статьи: {error}
+          {t("articleFeed.loadError", { error })}
         </p>
       )}
       {!loading && !error && (
         <>
-          {!hasArticles && <p className="body_state">{emptyMessage}</p>}
+          {!hasArticles && <p className="body_state">{resolvedEmptyMessage}</p>}
           {hasArticles &&
             articles.map((article) => (
               <ArticleCard key={article.id} article={article} />
@@ -151,14 +154,14 @@ export default function ArticleFeed({ listUrl, emptyMessage = "Пока нет �
             <div ref={sentinelRef} className="scroll_sentinel">
               {loadingMore && (
                 <p className="body_state body_state--inline">
-                  Загружаем ещё…
+                  {t("articleFeed.loadingMore")}
                 </p>
               )}
             </div>
           )}
 
           {hasArticles && !hasMore && (
-            <p className="body_state body_state--inline">Это все статьи.</p>
+            <p className="body_state body_state--inline">{t("articleFeed.allLoaded")}</p>
           )}
         </>
       )}

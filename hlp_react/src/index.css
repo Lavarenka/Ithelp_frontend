@@ -44,6 +44,17 @@ main.main {
     padding-bottom: var(--footer-height);
 }
 
+/* Ниже 1200px подвал становится двухстрочным (см. .footer_row в
+   FooterSection.css — текст с годом и иконки соцсетей теперь друг под
+   другом, а не в одну строку) — увеличиваем запас снизу, иначе последний
+   блок контента снова начнёт прятаться под подвалом, как уже было раньше
+   с недостаточным --footer-height. */
+@media (max-width: 1199.98px) {
+    main.main {
+        padding-bottom: calc(var(--footer-height) + 34px);
+    }
+}
+
 .border_ {
     border: 1px solid red;
 }

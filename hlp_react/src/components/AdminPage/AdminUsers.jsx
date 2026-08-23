@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { apiRequest } from "../../api";
 import { useAuth } from "../../context/AuthContext";
 
 const PAGE_SIZE = 20;
 
 export default function AdminUsers() {
+  const { t, i18n } = useTranslation();
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [total, setTotal] = useState(0);
@@ -41,7 +43,7 @@ export default function AdminUsers() {
     const nextRole = u.role === "admin" ? "user" : "admin";
     const isSelf = u.id === currentUser.id;
     if (isSelf && nextRole !== "admin") {
-      window.alert("Нельзя снять права admin с самого себя.");
+      window.alert(t("admin.users.alertCannotDemoteSelf"));
       return;
     }
     setPendingId(u.id);
@@ -59,7 +61,7 @@ export default function AdminUsers() {
   const toggleActive = async (u) => {
     const isSelf = u.id === currentUser.id;
     if (isSelf && u.is_active) {
-      window.alert("Нельзя заблокировать самого себя.");
+      window.alert(t("admin.users.alertCannotBlockSelf"));
       return;
     }
     setPendingId(u.id);
@@ -79,10 +81,10 @@ export default function AdminUsers() {
 
   const handleDelete = async (u) => {
     if (u.id === currentUser.id) {
-      window.alert("Нельзя удалить самого себя.");
+      window.alert(t("admin.users.alertCannotDeleteSelf"));
       return;
     }
-    if (!window.confirm(`Удалить пользователя «${u.username}»? Это действие необратимо.`)) return;
+    if (!window.confirm(t("admin.users.confirmDelete", { username: u.username }))) return;
     setPendingId(u.id);
     setError(null);
     try {
@@ -97,7 +99,7 @@ export default function AdminUsers() {
 
   return (
     <div className="admin-section">
-      {isLoading && <p className="admin-section_state">Загрузка…</p>}
+      {isLoading && <p className="admin-section_state">{t("common.loading")}</p>}
       {error && <p className="admin-section_state admin-section_state--error">{error}</p>}
 
       {!isLoading && !error && (
@@ -106,12 +108,12 @@ export default function AdminUsers() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Логин</th>
-                  <th>Email</th>
-                  <th>Роль</th>
-                  <th>Статус</th>
-                  <th>Регистрация</th>
+                  <th>{t("admin.users.tableId")}</th>
+                  <th>{t("admin.users.tableUsername")}</th>
+                  <th>{t("admin.users.tableEmail")}</th>
+                  <th>{t("admin.users.tableRole")}</th>
+                  <th>{t("admin.users.tableStatus")}</th>
+                  <th>{t("admin.users.tableRegistered")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -124,7 +126,7 @@ export default function AdminUsers() {
                       <td>{u.id}</td>
                       <td>
                         {u.username}
-                        {isSelf && <span className="admin-table_you"> (вы)</span>}
+                        {isSelf && <span className="admin-table_you">{t("admin.users.you")}</span>}
                       </td>
                       <td>{u.email}</td>
                       <td>
@@ -134,12 +136,12 @@ export default function AdminUsers() {
                       </td>
                       <td>
                         {u.is_active ? (
-                          <span className="badge text-bg-success">активен</span>
+                          <span className="badge text-bg-success">{t("admin.users.statusActive")}</span>
                         ) : (
-                          <span className="badge text-bg-danger">заблокирован</span>
+                          <span className="badge text-bg-danger">{t("admin.users.statusBlocked")}</span>
                         )}
                       </td>
-                      <td>{new Date(u.created_at).toLocaleDateString("ru-RU")}</td>
+                      <td>{new Date(u.created_at).toLocaleDateString(i18n.language === "en" ? "en-US" : "ru-RU")}</td>
                       <td className="admin-table_actions">
                         <button
                           type="button"
@@ -147,7 +149,7 @@ export default function AdminUsers() {
                           disabled={isPending}
                           onClick={() => toggleRole(u)}
                         >
-                          {u.role === "admin" ? "Сделать user" : "Сделать admin"}
+                          {u.role === "admin" ? t("admin.users.makeUser") : t("admin.users.makeAdmin")}
                         </button>
                         <button
                           type="button"
@@ -155,7 +157,7 @@ export default function AdminUsers() {
                           disabled={isPending}
                           onClick={() => toggleActive(u)}
                         >
-                          {u.is_active ? "Заблокировать" : "Разблокировать"}
+                          {u.is_active ? t("admin.users.block") : t("admin.users.unblock")}
                         </button>
                         <button
                           type="button"
@@ -163,7 +165,7 @@ export default function AdminUsers() {
                           disabled={isPending}
                           onClick={() => handleDelete(u)}
                         >
-                          Удалить
+                          {t("common.delete")}
                         </button>
                       </td>
                     </tr>
@@ -172,7 +174,7 @@ export default function AdminUsers() {
                 {users.length === 0 && (
                   <tr>
                     <td colSpan={7} className="admin-table_empty">
-                      Пользователей пока нет.
+                      {t("admin.users.empty")}
                     </td>
                   </tr>
                 )}
@@ -187,10 +189,10 @@ export default function AdminUsers() {
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
             >
-              « Назад
+              {t("pagination.prev")}
             </button>
             <span>
-              Страница {page + 1} из {totalPages} ({total} всего)
+              {t("pagination.pageOfTotal", { page: page + 1, totalPages, total })}
             </span>
             <button
               type="button"
@@ -198,7 +200,7 @@ export default function AdminUsers() {
               disabled={page + 1 >= totalPages}
               onClick={() => setPage((p) => p + 1)}
             >
-              Вперёд »
+              {t("pagination.next")}
             </button>
           </div>
         </>

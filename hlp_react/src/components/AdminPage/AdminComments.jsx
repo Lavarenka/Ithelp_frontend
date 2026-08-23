@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { apiRequest } from "../../api";
 
 const PAGE_SIZE = 20;
@@ -6,21 +7,25 @@ const PAGE_SIZE = 20;
 // комментарий пользователя появился в админке без ручного обновления.
 const POLL_INTERVAL = 10000;
 
-const STATUS_FILTERS = [
-  { key: "pending", label: "На модерации" },
-  { key: "approved", label: "Опубликованные" },
-  { key: "rejected", label: "Отклонённые" },
-  { key: "", label: "Все" },
-];
+function useStatusFilters(t) {
+  return [
+    { key: "pending", label: t("admin.comments.filterPending") },
+    { key: "approved", label: t("admin.comments.filterApproved") },
+    { key: "rejected", label: t("admin.comments.filterRejected") },
+    { key: "", label: t("admin.comments.filterAll") },
+  ];
+}
 
-const STATUS_LABELS = {
-  pending: "На модерации",
-  approved: "Опубликован",
-  rejected: "Отклонён",
-};
+function useStatusLabels(t) {
+  return {
+    pending: t("admin.comments.statusPending"),
+    approved: t("admin.comments.statusApproved"),
+    rejected: t("admin.comments.statusRejected"),
+  };
+}
 
-function formatDate(iso) {
-  return new Date(iso).toLocaleString("ru-RU", {
+function formatDate(iso, locale) {
+  return new Date(iso).toLocaleString(locale === "en" ? "en-US" : "ru-RU", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -30,6 +35,9 @@ function formatDate(iso) {
 }
 
 export default function AdminComments() {
+  const { t, i18n } = useTranslation();
+  const STATUS_FILTERS = useStatusFilters(t);
+  const STATUS_LABELS = useStatusLabels(t);
   const [statusFilter, setStatusFilter] = useState("pending");
   const [comments, setComments] = useState([]);
   const [total, setTotal] = useState(0);
@@ -119,7 +127,7 @@ export default function AdminComments() {
   };
 
   const handleDelete = async (comment) => {
-    if (!window.confirm(`Удалить комментарий пользователя «${comment.author.username}»? Это действие необратимо.`)) return;
+    if (!window.confirm(t("admin.comments.confirmDelete", { username: comment.author.username }))) return;
     setBusy(comment.id, true);
     try {
       await apiRequest(`/comments/${comment.id}`, { method: "DELETE" });
@@ -147,7 +155,7 @@ export default function AdminComments() {
         </div>
       </div>
 
-      {isLoading && <p className="admin-section_state">Загрузка…</p>}
+      {isLoading && <p className="admin-section_state">{t("common.loading")}</p>}
       {error && <p className="admin-section_state admin-section_state--error">{error}</p>}
 
       {!isLoading && !error && (
@@ -156,11 +164,11 @@ export default function AdminComments() {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Статья</th>
-                  <th>Автор</th>
-                  <th>Текст</th>
-                  <th>Дата</th>
-                  <th>Статус</th>
+                  <th>{t("admin.comments.tableArticle")}</th>
+                  <th>{t("admin.comments.tableAuthor")}</th>
+                  <th>{t("admin.comments.tableText")}</th>
+                  <th>{t("admin.comments.tableDate")}</th>
+                  <th>{t("admin.comments.tableStatus")}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -173,7 +181,7 @@ export default function AdminComments() {
                     <td className="admin-table_title">{comment.article.title}</td>
                     <td>{comment.author.username}</td>
                     <td className="admin-comments_text">{comment.text}</td>
-                    <td>{formatDate(comment.created_at)}</td>
+                    <td>{formatDate(comment.created_at, i18n.language)}</td>
                     <td>
                       <span className={`admin-comments_status admin-comments_status--${comment.status}`}>
                         {STATUS_LABELS[comment.status] ?? comment.status}
@@ -187,7 +195,7 @@ export default function AdminComments() {
                           disabled={busyIds.has(comment.id)}
                           onClick={() => handleModerate(comment, "approved")}
                         >
-                          Опубликовать
+                          {t("admin.comments.approve")}
                         </button>
                       )}
                       {comment.status !== "rejected" && (
@@ -197,7 +205,7 @@ export default function AdminComments() {
                           disabled={busyIds.has(comment.id)}
                           onClick={() => handleModerate(comment, "rejected")}
                         >
-                          Отклонить
+                          {t("admin.comments.reject")}
                         </button>
                       )}
                       <button
@@ -206,7 +214,7 @@ export default function AdminComments() {
                         disabled={busyIds.has(comment.id)}
                         onClick={() => handleDelete(comment)}
                       >
-                        Удалить
+                        {t("common.delete")}
                       </button>
                     </td>
                   </tr>
@@ -214,7 +222,7 @@ export default function AdminComments() {
                 {comments.length === 0 && (
                   <tr>
                     <td colSpan={6} className="admin-table_empty">
-                      Ничего не найдено.
+                      {t("common.notFound")}
                     </td>
                   </tr>
                 )}
@@ -229,10 +237,10 @@ export default function AdminComments() {
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
             >
-              « Назад
+              {t("pagination.prev")}
             </button>
             <span>
-              Страница {page + 1} из {totalPages} ({total} всего)
+              {t("pagination.pageOfTotal", { page: page + 1, totalPages, total })}
             </span>
             <button
               type="button"
@@ -240,7 +248,7 @@ export default function AdminComments() {
               disabled={page + 1 >= totalPages}
               onClick={() => setPage((p) => p + 1)}
             >
-              Вперёд »
+              {t("pagination.next")}
             </button>
           </div>
         </>

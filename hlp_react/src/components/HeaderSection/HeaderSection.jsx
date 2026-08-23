@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./Header.css";
 import { API_BASE_URL } from "../../api";
 import TypingLogo from "./TypingLogo";
@@ -51,20 +52,21 @@ function TagMenuItem({ tag }) {
 }
 
 // Переключатель языка RU/EN — пока просто заглушка-переключатель без
-// реального перевода: меняет только собственное состояние (какая половина
-// подсвечена), ни текст интерфейса, ни список статей не трогает. Когда
-// подключим i18n и фильтрацию статей по языку, сюда добавится вызов
-// i18n.changeLanguage(...) и общий контекст языка вместо локального state.
-function LanguageToggle() {
-  const [isEn, setIsEn] = useState(false);
-
+// реального перевода: меняет только общее состояние языка в App (см.
+// пропсы isEn/onToggle), которое сейчас влияет лишь на лёгкую подсветку
+// шапки/подвала (header--ru/footer--ru), а текст интерфейса и список
+// статей не трогает. Когда подключим i18n и фильтрацию статей по языку,
+// это состояние переедет в LanguageContext, а сюда добавится вызов
+// i18n.changeLanguage(...).
+function LanguageToggle({ isEn, onToggle }) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
       className={`lang-toggle ${isEn ? "lang-toggle--en" : ""}`}
-      onClick={() => setIsEn((prev) => !prev)}
-      title="Язык сайта (скоро)"
-      aria-label="Переключить язык сайта"
+      onClick={onToggle}
+      title={t("header.languageTitle")}
+      aria-label={t("header.languageAriaLabel")}
     >
       <span className="lang-toggle_pill" aria-hidden="true"></span>
       <span className="lang-toggle_half">RU</span>
@@ -73,7 +75,8 @@ function LanguageToggle() {
   );
 }
 
-export default function Header() {
+export default function Header({ isEn, onToggleLanguage }) {
+  const { t } = useTranslation();
   const [isCompact, setIsCompact] = useState(false);
   const [tags, setTags] = useState([]);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -113,7 +116,7 @@ export default function Header() {
   return (
     <>
        <header
-         className={`header mb-4 sticky-top ${isCompact ? "header--compact" : ""}`}
+         className={`header mb-4 sticky-top ${isCompact ? "header--compact" : ""} ${!isEn ? "header--ru" : ""}`}
          id="header-nav"
        >
         <div className="container">
@@ -124,7 +127,7 @@ export default function Header() {
                     </h1>
                 </div>
 
-                <div className="col-4 col-lg text-center d-flex align-items-center justify-content-center order-1 order-lg-2 ">
+                <div className="col-4 col-lg text-center d-flex align-items-center justify-content-center order-1 order-lg-2 header_row_menu">
                     <nav className="navbar navbar-expand-lg " data-bs-theme="dark">
                         <div className="container-fluid">
 
@@ -136,17 +139,17 @@ export default function Header() {
                             <div className="offcanvas offcanvas-start" id="offcanvasNavbar" tabIndex="-1"
                                  aria-labelledby="offcanvasNavbarLabel">
                                 <div className="offcanvas-header">
-                                    <h5 className="offcanvas-title" id="offcanvasLabel">Меню</h5>
+                                    <h5 className="offcanvas-title" id="offcanvasLabel">{t("header.menu")}</h5>
                                     <button type="button" className="btn-close" data-bs-dismiss="offcanvas"
                                             aria-label="Close"></button>
                                 </div>
                                 <div className="offcanvas-body ">
                                     <ul className="navbar-nav ">
                                         <li className="nav-item">
-                                            <Link className="nav-link text-underlined" aria-current="page" to="/">Главная</Link>
+                                            <Link className="nav-link text-underlined" aria-current="page" to="/">{t("header.home")}</Link>
                                         </li>
                                         <li className="nav-item">
-                                            <a className="nav-link text-underlined" href="#">О нас</a>
+                                            <a className="nav-link text-underlined" href="#">{t("header.about")}</a>
                                         </li>
                                         {tags.map((tag) => (
                                           <TagMenuItem key={tag.id} tag={tag} />
@@ -163,14 +166,14 @@ export default function Header() {
                 <div className="col col-lg-2 d-flex align-items-center justify-content-center order-3 header_icons header_link">
 
                     <button type="button" className="btn header_search" data-bs-toggle="modal"
-                            data-bs-target="#searchModal" title="Поиск">
+                            data-bs-target="#searchModal" title={t("header.search")}>
                         <i className="fa-solid fa-magnifying-glass fa-rotate-90 fa-xl  "></i>
                     </button>
 
-                    <LanguageToggle />
+                    <LanguageToggle isEn={isEn} onToggle={onToggleLanguage} />
 
                     {isAuthenticated && (
-                        <Link to="/favorites" className="btn header_search header_favorites" title="Избранное">
+                        <Link to="/favorites" className="btn header_search header_favorites" title={t("header.favorites")}>
                             <i className="fa-solid fa-bookmark fa-xl"></i>
                             {favoritesCount > 0 && (
                                 <span className="header_favorites_badge">{favoritesCount}</span>
@@ -194,7 +197,7 @@ export default function Header() {
                                     <li>
                                         <Link className="dropdown-item" to="/admin">
                                             <i className="fa-solid fa-gauge me-2"></i>
-                                            Админка
+                                            {t("header.admin")}
                                         </Link>
                                     </li>
                                 )}
@@ -202,14 +205,14 @@ export default function Header() {
                                 <li>
                                     <button type="button" className="dropdown-item" onClick={logout}>
                                         <i className="fa-solid fa-arrow-right-from-bracket me-2"></i>
-                                        Выйти
+                                        {t("header.logout")}
                                     </button>
                                 </li>
                             </ul>
                         </div>
                     ) : (
                         <button type="button" className="btn header_search" data-bs-toggle="modal"
-                                data-bs-target="#loginModal" title="Авторизация">
+                                data-bs-target="#loginModal" title={t("header.login")}>
                             <i className="fa-solid fa-key fa-xl"></i>
                         </button>
                     )}

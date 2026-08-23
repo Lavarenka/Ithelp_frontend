@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 
 const EXCERPT_LENGTH = 220;
@@ -20,6 +21,7 @@ function toPlainExcerpt(markdown) {
 }
 
 const ArticleCard = ({ article }) => {
+  const { t } = useTranslation();
   const tags = article.tags ?? [];
 
   return (
@@ -30,8 +32,8 @@ const ArticleCard = ({ article }) => {
             <div className="card_img me-2">
               {/* <img src="assets/img/no-name.jpg" alt=""> */}
             </div>
-            <div className="card_login me-2">{article.author?.username ?? "admin"}</div>
-            <div className="card_time">14 минут назад</div>
+            <div className="card_login me-2">{article.author?.username ?? t("articleCard.authorFallback")}</div>
+            <div className="card_time">{t("articleCard.timeFallback")}</div>
           </div>
           {tags.length > 0 && (
             <div className="d-flex card_tags mb-2">
@@ -55,7 +57,7 @@ const ArticleCard = ({ article }) => {
           </div>
           <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div className="d-flex flex-wrap align-items-center">
-              <div className="d-flex me-2 " title="Количество просмотров">
+              <div className="d-flex me-2 " title={t("sidebar.viewsTitle")}>
                 <div className="">
                   <i className="fa-regular fa-eye "></i>
                 </div>
@@ -68,13 +70,13 @@ const ArticleCard = ({ article }) => {
                   {article.views ?? 0}
                 </div>
               </div>
-              <div className="d-flex me-2" title="Комментарии">
+              <div className="d-flex me-2" title={t("sidebar.commentsTitle")}>
                 <div className="">
                   <i className="fa-regular fa-comment"></i>
                 </div>
                 <div className="">{article.comments_count ?? 0}</div>
               </div>
-              <div className="d-flex me-2" title="Поделиться">
+              <div className="d-flex me-2" title={t("articleCard.shareTitle")}>
                 <div className="card_link">
                   <a href="#">
                     <i className="fa-solid fa-share"></i>
@@ -85,7 +87,7 @@ const ArticleCard = ({ article }) => {
             </div>
             <div className="card_link">
               <Link to={`/articles/${article.id}`} className="read-more">
-                Read more
+                {t("articleCard.readMore")}
               </Link>
             </div>
           </div>

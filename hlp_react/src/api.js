@@ -1,3 +1,5 @@
+import i18n from "./i18n";
+
 // Базовый адрес бэкенда. При необходимости можно вынести в .env (VITE_API_URL).
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -32,7 +34,9 @@ export async function apiRequest(path, { method = "GET", body, ...rest } = {}) {
   });
 
   if (!response.ok) {
-    throw new Error(await extractErrorMessage(response, `Ошибка запроса: ${response.status}`));
+    throw new Error(
+      await extractErrorMessage(response, i18n.t("common.requestError", { status: response.status }))
+    );
   }
 
   if (response.status === 204) return null;

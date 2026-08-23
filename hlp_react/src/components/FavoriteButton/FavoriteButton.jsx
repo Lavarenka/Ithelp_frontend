@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useFavorites } from "../../context/FavoritesContext";
 import "./FavoriteButton.css";
 
@@ -8,6 +9,7 @@ import "./FavoriteButton.css";
  * не шлёт запрос, а просто показывает всплывающую подсказку "войдите".
  */
 export default function FavoriteButton({ articleId, size = "normal", className = "" }) {
+  const { t } = useTranslation();
   const { isFavorited, isPending, toggleFavorite } = useFavorites();
   const [guestHint, setGuestHint] = useState(false);
   const active = isFavorited(articleId);
@@ -31,12 +33,12 @@ export default function FavoriteButton({ articleId, size = "normal", className =
         className={`favorite-btn ${active ? "favorite-btn--active" : ""}`}
         onClick={handleClick}
         disabled={pending}
-        title={active ? "Убрать из избранного" : "Добавить в избранное"}
+        title={active ? t("favorites.removeTooltip") : t("favorites.addTooltip")}
         aria-pressed={active}
       >
         <i className={active ? "fa-solid fa-bookmark" : "fa-regular fa-bookmark"}></i>
       </button>
-      {guestHint && <span className="favorite-btn_hint">Войдите, чтобы добавить в избранное</span>}
+      {guestHint && <span className="favorite-btn_hint">{t("favorites.addHint")}</span>}
     </div>
   );
 }
