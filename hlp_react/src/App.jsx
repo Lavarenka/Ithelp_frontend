@@ -9,7 +9,9 @@ import ArticlePage from "./components/CardSection/ArticlePage";
 import TagPage from "./components/TagPage/TagPage";
 import AdminPage from "./components/AdminPage/AdminPage";
 import FavoritesPage from "./components/FavoritesPage/FavoritesPage";
+import VerifyEmailPage from "./components/VerifyEmailPage/VerifyEmailPage";
 import CookieBanner from "./components/CookieBanner/CookieBanner";
+import EmailVerifyBanner from "./components/EmailVerifyBanner/EmailVerifyBanner";
 
 function App() {
   // Админка — самостоятельная страница без сайдбара (там своя раскладка:
@@ -31,6 +33,7 @@ function App() {
   return (
     <div className="wrapper">
       <Header isEn={isEn} onToggleLanguage={toggleLanguage} />
+      <EmailVerifyBanner />
 
       <main className="main">
         <div className="page-container">
@@ -45,6 +48,7 @@ function App() {
                 <Route path="/articles/:id" element={<ArticlePage />} />
                 <Route path="/tags/:slug" element={<TagPage />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
               </Routes>
               <Sitebar />
             </div>

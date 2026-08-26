@@ -31,4 +31,40 @@ def decode_access_token(token: str) -> str | None:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.jwt_algorithm])
     except JWTError:
         return None
+    # purpose отсутствует у обычных access-токенов, но должен отсутствовать
+    # и здесь — токен подтверждения email (purpose="email_verify", см. ниже)
+    # не должен работать как access-токен, даже если у него не истёк exp.
+    if payload.get("purpose") is not None:
+        return None
     return payload.get("sub")
+
+
+def create_email_verification_token(user_id: int, email: str) -> str:
+    """Отдельный тип токена (purpose="email_verify") — подписан тем же
+    secret_key, но не взаимозаменяем с access-токеном авторизации (см.
+    decode_access_token выше) и с более коротким сроком жизни. email в
+    payload — чтобы ссылка протухала сама, если пользователь успеет сменить
+    почту до перехода по ней (сравнение делает вызывающий код)."""
+    expire = datetime.now(timezone.utc) + timedelta(hours=settings.email_verification_expire_hours)
+    to_encode = {"sub": str(user_id), "email": email, "purpose": "email_verify", "exp": expire}
+    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.jwt_algorithm)
+
+
+def decode_email_verification_token(token: str) -> dict | None:
+    """Возвращает {"user_id": int, "email": str} или None, если токен
+    невалиден/просрочен/не того типа."""
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.jwt_algorithm])
+    except JWTError:
+        return None
+    if payload.get("purpose") != "email_verify":
+        return None
+    sub = payload.get("sub")
+    email = payload.get("email")
+    if sub is None or email is None:
+        return None
+    try:
+        user_id = int(sub)
+    except ValueError:
+        return None
+    return {"user_id": user_id, "email": email}

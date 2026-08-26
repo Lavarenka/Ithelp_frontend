@@ -6,15 +6,31 @@ const AuthContext = createContext(null);
 
 const TOKEN_STORAGE_KEY = "it_hlp_token";
 
-// Достаём читаемое сообщение об ошибке из ответа FastAPI (обычно {"detail": "..."}).
+// Достаём читаемое сообщение об ошибке из ответа FastAPI. detail обычно
+// строка, но /auth/login и /auth/register иногда отдают структурированный
+// {"detail": {"code": "...", "detail": "..."}} (см. app/routers/auth.py на
+// бэкенде) — тогда возвращаем и текст, и code, чтобы вызывающий код (капча)
+// мог на него отреагировать, а не просто показать сообщение.
 async function extractErrorMessage(response, fallback) {
   try {
     const data = await response.json();
-    if (typeof data.detail === "string") return data.detail;
+    if (typeof data.detail === "string") return { message: data.detail, code: null };
+    if (data.detail && typeof data.detail === "object") {
+      return {
+        message: typeof data.detail.detail === "string" ? data.detail.detail : fallback,
+        code: typeof data.detail.code === "string" ? data.detail.code : null,
+      };
+    }
   } catch {
     // тело не JSON — используем запасной текст
   }
-  return fallback;
+  return { message: fallback, code: null };
+}
+
+function authError(message, code) {
+  const err = new Error(message);
+  if (code) err.code = code;
+  return err;
 }
 
 export function AuthProvider({ children }) {
@@ -88,14 +104,20 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(
-    async (usernameOrEmail, password) => {
+    async (usernameOrEmail, password, captcha) => {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username_or_email: usernameOrEmail, password }),
+        body: JSON.stringify({
+          username_or_email: usernameOrEmail,
+          password,
+          captcha_id: captcha?.captchaId ?? null,
+          captcha_answer: captcha?.answer ?? null,
+        }),
       });
       if (!response.ok) {
-        throw new Error(await extractErrorMessage(response, i18n.t("auth.loginFailed")));
+        const { message, code } = await extractErrorMessage(response, i18n.t("auth.loginFailed"));
+        throw authError(message, code);
       }
       const data = await response.json();
       applySession(data.access_token, data.user);
@@ -105,14 +127,22 @@ export function AuthProvider({ children }) {
   );
 
   const register = useCallback(
-    async (username, email, password) => {
+    async (username, email, password, passwordConfirm, captcha) => {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+          password_confirm: passwordConfirm,
+          captcha_id: captcha?.captchaId ?? null,
+          captcha_answer: captcha?.answer ?? null,
+        }),
       });
       if (!response.ok) {
-        throw new Error(await extractErrorMessage(response, i18n.t("auth.registerFailed")));
+        const { message, code } = await extractErrorMessage(response, i18n.t("auth.registerFailed"));
+        throw authError(message, code);
       }
       const data = await response.json();
       applySession(data.access_token, data.user);
@@ -120,6 +150,35 @@ export function AuthProvider({ children }) {
     },
     [applySession]
   );
+
+  // Перечитывает /auth/me — используется после подтверждения email на
+  // странице /verify-email, чтобы баннер "подтвердите почту" пропал сразу,
+  // без выхода/входа заново (токен тот же, меняется только email_verified).
+  const refreshUser = useCallback(async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      setUser(data);
+    } catch {
+      // тихо игнорируем — баннер просто останется до следующего обновления страницы
+    }
+  }, [token]);
+
+  const resendVerification = useCallback(async () => {
+    const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const { message, code } = await extractErrorMessage(response, i18n.t("auth.genericError"));
+      throw authError(message, code);
+    }
+    return response.json();
+  }, [token]);
 
   const value = useMemo(
     () => ({
@@ -131,8 +190,10 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      refreshUser,
+      resendVerification,
     }),
-    [token, user, isLoading, login, register, logout]
+    [token, user, isLoading, login, register, logout, refreshUser, resendVerification]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

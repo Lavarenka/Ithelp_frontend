@@ -1,12 +1,16 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 
 class UserRegister(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: EmailStr
     password: str = Field(min_length=6, max_length=128)
+    password_confirm: str = Field(min_length=1, max_length=128)
+    # Капча — обязательна на регистрации всегда (см. app/captcha.py).
+    captcha_id: str = Field(min_length=1)
+    captcha_answer: int
 
     @field_validator("username")
     @classmethod
@@ -16,11 +20,22 @@ class UserRegister(BaseModel):
             raise ValueError("Логин не должен содержать пробелы")
         return value
 
+    @model_validator(mode="after")
+    def passwords_match(self) -> "UserRegister":
+        if self.password != self.password_confirm:
+            raise ValueError("Пароли не совпадают")
+        return self
+
 
 class UserLogin(BaseModel):
     # Разрешаем логиниться и по username, и по email — так удобнее пользователю.
     username_or_email: str = Field(min_length=1)
     password: str = Field(min_length=1)
+    # Капча на логине требуется не всегда — только после нескольких неудачных
+    # попыток подряд для этого же логина (см. app/login_attempts.py). Поэтому
+    # оба поля опциональны на уровне схемы; обязательность проверяет роутер.
+    captcha_id: str | None = None
+    captcha_answer: int | None = None
 
 
 class UserOut(BaseModel):
@@ -28,6 +43,7 @@ class UserOut(BaseModel):
     username: str
     email: EmailStr
     role: str
+    email_verified: bool
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -59,3 +75,13 @@ class UserRoleUpdate(BaseModel):
 
 class UserActiveUpdate(BaseModel):
     is_active: bool
+
+
+class CaptchaOut(BaseModel):
+    captcha_id: str
+    question: str
+
+
+class EmailVerifyOut(BaseModel):
+    message: str
+    already_verified: bool = False

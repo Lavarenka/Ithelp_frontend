@@ -17,6 +17,10 @@ class User(Base):
     # "admin" может создавать/редактировать статьи и теги, "user" — только читать.
     role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    # Подтверждение email — "мягкое": пока False, пользователь всё равно
+    # может пользоваться сайтом (см. app/routers/auth.py), просто видит
+    # баннер с предложением подтвердить и кнопкой повторной отправки письма.
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

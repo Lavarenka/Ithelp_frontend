@@ -102,7 +102,22 @@
     "haveAccount": "Уже есть аккаунт?",
     "genericError": "Что-то пошло не так",
     "loginFailed": "Не удалось войти",
-    "registerFailed": "Не удалось зарегистрироваться"
+    "registerFailed": "Не удалось зарегистрироваться",
+    "passwordConfirm": "Повторите пароль",
+    "passwordMismatch": "Пароли не совпадают",
+    "captchaCheckbox": "Я не робот",
+    "captchaQuestion": "Сколько будет {{question}}?",
+    "captchaRequired": "Пожалуйста, подтвердите капчу",
+    "captchaNowRequired": "Слишком много неудачных попыток — подтвердите капчу и попробуйте снова",
+    "captchaLoadFailed": "Не удалось загрузить капчу — нажмите, чтобы повторить",
+    "emailVerifyBannerText": "Подтвердите ваш email ({{email}}) — проверьте почту, мы отправили туда письмо со ссылкой.",
+    "emailVerifyResend": "Отправить письмо ещё раз",
+    "emailVerifyResending": "Отправка…",
+    "emailVerifyResendSent": "Письмо отправлено",
+    "verifyEmailMissingToken": "В этой ссылке отсутствует код подтверждения.",
+    "verifyEmailSuccess": "Ваш email успешно подтверждён. Спасибо!",
+    "verifyEmailAlready": "Этот email уже был подтверждён ранее.",
+    "verifyEmailFailed": "Ссылка недействительна или устарела — запросите новое письмо"
   },
   "codeBlock": {
     "copy": "Копировать",

@@ -1,3 +1,5 @@
+from sqlalchemy import inspect, text
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -8,6 +10,28 @@ from app.routers import articles, tags, auth, users, favorites, comments
 # Пока без Alembic-миграций: на старте создаём таблицы, если их ещё нет.
 # Когда бэкенд обрастёт другими моделями — заменить на alembic upgrade head.
 Base.metadata.create_all(bind=engine)
+
+
+def _ensure_users_email_verified_column() -> None:
+    """create_all выше создаёт только отсутствующие ТАБЛИЦЫ — если users уже
+    существовала (обычный случай на уже работающем сайте), новую колонку
+    email_verified она сама не добавит. Это разовый ручной "патч" вместо
+    полноценных Alembic-миграций (см. комментарий выше) — safe: проверяем,
+    что колонки ещё нет, прежде чем добавлять."""
+    inspector = inspect(engine)
+    if "users" not in inspector.get_table_names():
+        return
+    columns = {col["name"] for col in inspector.get_columns("users")}
+    if "email_verified" in columns:
+        return
+    # SQLite и PostgreSQL по-разному пишут булевый default в ALTER TABLE —
+    # используем DEFAULT FALSE, оно понятно обоим диалектам (SQLite хранит
+    # BOOLEAN как 0/1, но принимает литерал FALSE как синоним 0).
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE users ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE"))
+
+
+_ensure_users_email_verified_column()
 
 app = FastAPI(title="it_hlp API", version="0.1.0")
 

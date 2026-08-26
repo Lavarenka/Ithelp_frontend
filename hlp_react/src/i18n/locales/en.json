@@ -102,7 +102,22 @@
     "haveAccount": "Already have an account?",
     "genericError": "Something went wrong",
     "loginFailed": "Couldn't log in",
-    "registerFailed": "Couldn't sign up"
+    "registerFailed": "Couldn't sign up",
+    "passwordConfirm": "Repeat password",
+    "passwordMismatch": "Passwords don't match",
+    "captchaCheckbox": "I'm not a robot",
+    "captchaQuestion": "How much is {{question}}?",
+    "captchaRequired": "Please confirm the captcha",
+    "captchaNowRequired": "Too many failed attempts — please confirm the captcha and try again",
+    "captchaLoadFailed": "Couldn't load the captcha — click to retry",
+    "emailVerifyBannerText": "Please confirm your email ({{email}}) — check your inbox for a link from us.",
+    "emailVerifyResend": "Resend email",
+    "emailVerifyResending": "Sending…",
+    "emailVerifyResendSent": "Email sent",
+    "verifyEmailMissingToken": "This link is missing a confirmation code.",
+    "verifyEmailSuccess": "Your email has been confirmed. Thank you!",
+    "verifyEmailAlready": "This email was already confirmed.",
+    "verifyEmailFailed": "This link is invalid or has expired — please request a new one."
   },
   "codeBlock": {
     "copy": "Copy",

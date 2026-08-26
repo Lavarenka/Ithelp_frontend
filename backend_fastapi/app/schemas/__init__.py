@@ -9,6 +9,8 @@ from app.schemas.user import (
     UserListOut,
     UserRoleUpdate,
     UserActiveUpdate,
+    CaptchaOut,
+    EmailVerifyOut,
 )
 from app.schemas.favorite import FavoriteStatusOut
 from app.schemas.comment import (
@@ -44,6 +46,8 @@ __all__ = [
     "UserListOut",
     "UserRoleUpdate",
     "UserActiveUpdate",
+    "CaptchaOut",
+    "EmailVerifyOut",
     "FavoriteStatusOut",
     "CommentAuthorOut",
     "CommentCreate",
