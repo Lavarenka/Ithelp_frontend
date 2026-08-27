@@ -5,6 +5,7 @@ import "./Header.css";
 import { API_BASE_URL } from "../../api";
 import TypingLogo from "./TypingLogo";
 import AuthModal from "../AuthModal/AuthModal";
+import SearchModal from "../SearchModal/SearchModal";
 import { useAuth } from "../../context/AuthContext";
 import { useFavorites } from "../../context/FavoritesContext";
 
@@ -223,6 +224,7 @@ export default function Header({ isEn, onToggleLanguage }) {
     </header>
 
     <AuthModal />
+    <SearchModal />
 
     </>
   );

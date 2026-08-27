@@ -60,3 +60,24 @@ class ArticleListOut(BaseModel):
 
     items: list[ArticleOut]
     total: int
+
+
+class ArticleSearchOut(BaseModel):
+    """Облегчённая карточка результата для живого поиска (см.
+    routers/articles.py, search_articles) — вместо полного content
+    отдаём короткий сниппет вокруг первого совпадения; его собирает сам
+    роутер (такого поля нет в модели, поэтому from_attributes его не
+    найдёт — сниппет проставляется вручную, как is_favorited у ArticleOut)."""
+
+    id: int
+    title: str
+    snippet: str
+    tags: list[TagOut] = []
+    author: ArticleAuthorOut | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ArticleSearchListOut(BaseModel):
+    items: list[ArticleSearchOut]
+    total: int

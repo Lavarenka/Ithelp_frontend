@@ -1,13 +1,26 @@
+import re
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.deps import require_admin, get_current_user_optional
 from app.models import Article, Tag, User, Favorite, Comment
-from app.schemas import ArticleCreate, ArticleUpdate, ArticleOut, ArticleListOut
+from app.schemas import (
+    ArticleCreate,
+    ArticleUpdate,
+    ArticleOut,
+    ArticleListOut,
+    ArticleSearchOut,
+    ArticleSearchListOut,
+)
 
 router = APIRouter(prefix="/articles", tags=["articles"])
+
+# Сколько символов показывать слева/справа от найденного слова в сниппете
+# результата живого поиска (см. search_articles/_build_snippet ниже).
+SNIPPET_RADIUS = 80
 
 # Общая связка eager-loading для статьи: теги + автор (без лишних запросов на каждую статью).
 ARTICLE_LOAD_OPTIONS = (selectinload(Article.tags), selectinload(Article.author))
@@ -70,7 +83,10 @@ def list_articles(
     current_user: User | None = Depends(get_current_user_optional),
 ):
     """search — поиск по заголовку (регистронезависимо), используется в
-    списке статей админки. На обычной ленте фронт его не передаёт."""
+    списке статей админки. На обычной ленте фронт его не передаёт. Для
+    живого поиска по сайту (заголовок + текст статьи) есть отдельный
+    /articles/search/ (см. search_articles ниже) — он возвращает более
+    лёгкие карточки со сниппетом вместо полного текста."""
     filters = []
     if search:
         filters.append(Article.title.ilike(f"%{search}%"))
@@ -88,6 +104,79 @@ def list_articles(
     _annotate_favorites(db, items, current_user)
     _annotate_comments_count(db, items)
     return ArticleListOut(items=items, total=total)
+
+
+def _build_snippet(article: Article, query: str) -> str:
+    """Собирает короткий фрагмент текста вокруг первого совпадения с
+    запросом — сначала ищем в заголовке (тогда просто берём начало
+    контента), иначе ищем само совпадение в content и обрезаем вокруг
+    него с многоточиями по краям. Если совпадений в content вообще нет
+    (маловероятно — совпало же что-то в самом query, раз статья попала в
+    выдачу), тоже просто возвращаем начало текста."""
+    plain = re.sub(r"\s+", " ", article.content).strip()
+
+    if query.lower() not in article.title.lower():
+        match_pos = plain.lower().find(query.lower())
+        if match_pos != -1:
+            start = max(0, match_pos - SNIPPET_RADIUS)
+            end = min(len(plain), match_pos + len(query) + SNIPPET_RADIUS)
+            snippet = plain[start:end].strip()
+            if start > 0:
+                snippet = f"…{snippet}"
+            if end < len(plain):
+                snippet = f"{snippet}…"
+            return snippet
+
+    snippet = plain[: SNIPPET_RADIUS * 2].strip()
+    if len(plain) > len(snippet):
+        snippet = f"{snippet}…"
+    return snippet
+
+
+@router.get("/search/", response_model=ArticleSearchListOut)
+def search_articles(
+    q: str,
+    limit: int = 8,
+    db: Session = Depends(get_db),
+):
+    """Живой поиск для модалки в шапке (см. HeaderSection.jsx / SearchModal) —
+    ищет по заголовку И по тексту статьи (регистронезависимо), возвращает
+    облегчённые карточки со сниппетом вместо полного content. Путь идёт ДО
+    "/{article_id}" по той же причине, что и /popular/ ниже — иначе FastAPI
+    попробует распарсить "search" как article_id."""
+    query = q.strip()
+    if not query:
+        return ArticleSearchListOut(items=[], total=0)
+
+    filters = (Article.title.ilike(f"%{query}%"), Article.content.ilike(f"%{query}%"))
+    stmt = (
+        select(Article)
+        .options(*ARTICLE_LOAD_OPTIONS)
+        .where(or_(*filters))
+        .order_by(Article.created_at.desc())
+        .limit(limit)
+    )
+    items = db.execute(stmt).scalars().all()
+    total = db.execute(select(func.count()).select_from(Article).where(or_(*filters))).scalar_one()
+
+    # snippet — не поле модели Article, поэтому его нельзя сначала
+    # провалидировать из ORM-объекта (from_attributes упадёт на required
+    # поле, которого нет как атрибута), а потом доопределить — нужно
+    # посчитать его заранее и передать вместе с остальными данными статьи.
+    results = [
+        ArticleSearchOut.model_validate(
+            {
+                "id": article.id,
+                "title": article.title,
+                "tags": article.tags,
+                "author": article.author,
+                "snippet": _build_snippet(article, query),
+            }
+        )
+        for article in items
+    ]
+
+    return ArticleSearchListOut(items=results, total=total)
 
 
 @router.get("/popular/", response_model=list[ArticleOut])

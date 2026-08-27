@@ -59,6 +59,13 @@
     "shareTitle": "Share",
     "readMore": "Read more"
   },
+  "search": {
+    "placeholder": "Search articles…",
+    "hint": "Start typing to search by title or article text.",
+    "empty": "Nothing found.",
+    "error": "Couldn't search — try again.",
+    "moreResults": "and {{count}} more…"
+  },
   "articlePage": {
     "notFound": "Article not found",
     "loading": "Loading article…",

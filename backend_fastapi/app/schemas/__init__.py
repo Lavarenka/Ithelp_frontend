@@ -1,4 +1,13 @@
-from app.schemas.article import ArticleBase, ArticleCreate, ArticleUpdate, ArticleOut, ArticleListOut, ArticleAuthorOut
+from app.schemas.article import (
+    ArticleBase,
+    ArticleCreate,
+    ArticleUpdate,
+    ArticleOut,
+    ArticleListOut,
+    ArticleAuthorOut,
+    ArticleSearchOut,
+    ArticleSearchListOut,
+)
 from app.schemas.tag import TagBase, TagCreate, TagUpdate, TagOut, TagTreeOut
 from app.schemas.user import (
     UserRegister,
@@ -33,6 +42,8 @@ __all__ = [
     "ArticleOut",
     "ArticleListOut",
     "ArticleAuthorOut",
+    "ArticleSearchOut",
+    "ArticleSearchListOut",
     "TagBase",
     "TagCreate",
     "TagUpdate",
