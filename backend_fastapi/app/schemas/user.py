@@ -1,6 +1,14 @@
 from datetime import datetime
+import base64
+import re
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
+
+from app.config import settings
+
+# Разрешаем только "безопасные" типы картинок для аватара — остальное (svg,
+# например, из-за встроенного JS) не пускаем даже как data-URI.
+_AVATAR_DATA_URI_RE = re.compile(r"^data:image/(png|jpe?g|webp|gif);base64,(?P<b64>.+)$")
 
 
 class UserRegister(BaseModel):
@@ -44,9 +52,48 @@ class UserOut(BaseModel):
     email: EmailStr
     role: str
     email_verified: bool
+    avatar: str | None = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserProfileUpdate(BaseModel):
+    """Самостоятельное редактирование профиля (PATCH /auth/me) — смена имени
+    пользователя и/или аватарки. Оба поля опциональны: фронтенд шлёт только
+    то, что реально изменилось."""
+
+    username: str | None = Field(default=None, min_length=3, max_length=50)
+    # None = не менять, "" = явно удалить текущий аватар (заглушка).
+    avatar: str | None = None
+    clear_avatar: bool = False
+
+    @field_validator("username")
+    @classmethod
+    def username_no_spaces(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        value = value.strip()
+        if not value or " " in value:
+            raise ValueError("Логин не должен содержать пробелы")
+        return value
+
+    @field_validator("avatar")
+    @classmethod
+    def avatar_valid_data_uri(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        match = _AVATAR_DATA_URI_RE.match(value)
+        if not match:
+            raise ValueError("Аватар должен быть изображением (PNG, JPEG, WEBP или GIF)")
+        try:
+            decoded_size = len(base64.b64decode(match.group("b64"), validate=True))
+        except Exception:
+            raise ValueError("Не удалось прочитать файл аватара")
+        if decoded_size > settings.avatar_max_bytes:
+            max_mb = settings.avatar_max_bytes / 1_000_000
+            raise ValueError(f"Файл аватара слишком большой (максимум {max_mb:.1f} МБ)")
+        return value
 
 
 class TokenOut(BaseModel):

@@ -31,7 +31,22 @@ def _ensure_users_email_verified_column() -> None:
         conn.execute(text("ALTER TABLE users ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE"))
 
 
+def _ensure_users_avatar_column() -> None:
+    """Та же логика, что и в _ensure_users_email_verified_column() выше —
+    добавляем колонку avatar в уже существующую таблицу users, если её там
+    ещё нет (см. app/models/user.py)."""
+    inspector = inspect(engine)
+    if "users" not in inspector.get_table_names():
+        return
+    columns = {col["name"] for col in inspector.get_columns("users")}
+    if "avatar" in columns:
+        return
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE users ADD COLUMN avatar TEXT"))
+
+
 _ensure_users_email_verified_column()
+_ensure_users_avatar_column()
 
 app = FastAPI(title="it_hlp API", version="0.1.0")
 

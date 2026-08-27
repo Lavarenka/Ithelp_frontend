@@ -10,6 +10,7 @@ import TagPage from "./components/TagPage/TagPage";
 import AdminPage from "./components/AdminPage/AdminPage";
 import FavoritesPage from "./components/FavoritesPage/FavoritesPage";
 import VerifyEmailPage from "./components/VerifyEmailPage/VerifyEmailPage";
+import ProfilePage from "./components/ProfilePage/ProfilePage";
 import CookieBanner from "./components/CookieBanner/CookieBanner";
 import EmailVerifyBanner from "./components/EmailVerifyBanner/EmailVerifyBanner";
 
@@ -49,6 +50,7 @@ function App() {
                 <Route path="/tags/:slug" element={<TagPage />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
               </Routes>
               <Sitebar />
             </div>

@@ -12,6 +12,7 @@ from app.schemas.user import (
     UserRegister,
     UserLogin,
     UserOut,
+    UserProfileUpdate,
     TokenOut,
     CaptchaOut,
     EmailVerifyOut,
@@ -136,6 +137,33 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.patch("/me", response_model=UserOut)
+def update_me(
+    payload: UserProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Самостоятельное редактирование профиля — страница "Профиль" на
+    фронтенде. Пароль тут не меняется (в этой версии там только заглушка
+    "скоро" — см. ProfilePage), только username и/или avatar."""
+    if payload.username is not None and payload.username != current_user.username:
+        taken = db.execute(
+            select(User).where(User.username == payload.username, User.id != current_user.id)
+        ).scalar_one_or_none()
+        if taken is not None:
+            raise HTTPException(status_code=400, detail="Логин уже занят")
+        current_user.username = payload.username
+
+    if payload.clear_avatar:
+        current_user.avatar = None
+    elif payload.avatar is not None:
+        current_user.avatar = payload.avatar
+
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 

@@ -24,6 +24,7 @@
     "search": "Поиск",
     "favorites": "Избранное",
     "login": "Войти",
+    "profile": "Профиль",
     "admin": "Админка",
     "logout": "Выйти",
     "languageTitle": "Язык сайта",
@@ -129,6 +130,28 @@
   "codeBlock": {
     "copy": "Копировать",
     "copied": "Скопировано"
+  },
+  "profile": {
+    "title": "Профиль",
+    "guestNotice": "Войдите, чтобы увидеть свой профиль.",
+    "avatarTitle": "Аватар",
+    "avatarAlt": "Ваш аватар",
+    "avatarUpload": "Загрузить изображение",
+    "avatarRemove": "Удалить",
+    "avatarHint": "PNG, JPEG, WEBP или GIF, до 1.5 МБ.",
+    "avatarSaved": "Аватар обновлён.",
+    "avatarTypeError": "Выберите изображение в формате PNG, JPEG, WEBP или GIF.",
+    "avatarSizeError": "Файл слишком большой (максимум {{maxMb}} МБ).",
+    "usernameTitle": "Имя пользователя",
+    "usernameSaved": "Имя пользователя обновлено.",
+    "passwordTitle": "Пароль",
+    "comingSoon": "скоро",
+    "currentPassword": "Текущий пароль",
+    "newPassword": "Новый пароль",
+    "accountInfoTitle": "Аккаунт",
+    "emailVerified": "подтверждён",
+    "emailUnverified": "не подтверждён",
+    "registeredAt": "Дата регистрации"
   },
   "admin": {
     "loading": "Загрузка…",

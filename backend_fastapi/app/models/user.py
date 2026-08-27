@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Integer, String, DateTime, Boolean
+from sqlalchemy import Integer, String, DateTime, Boolean, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -21,6 +21,10 @@ class User(Base):
     # может пользоваться сайтом (см. app/routers/auth.py), просто видит
     # баннер с предложением подтвердить и кнопкой повторной отправки письма.
     email_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Аватар хранится прямо в БД как data-URI (base64) — без отдельного файлового
+    # хранилища. Пока показывается только на странице профиля (см. запрос
+    # пользователя), по всему сайту подключим отдельной задачей позже.
+    avatar: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

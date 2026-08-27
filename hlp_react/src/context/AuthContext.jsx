@@ -180,6 +180,31 @@ export function AuthProvider({ children }) {
     return response.json();
   }, [token]);
 
+  // Обновление профиля (страница "Профиль") — смена username и/или аватарки.
+  // payload может содержать username, avatar (data-URI) и/или clear_avatar —
+  // см. UserProfileUpdate на бэкенде (app/schemas/user.py). Обновляет user
+  // в контексте сразу из ответа, без отдельного refreshUser().
+  const updateProfile = useCallback(
+    async (payload) => {
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const { message, code } = await extractErrorMessage(response, i18n.t("auth.genericError"));
+        throw authError(message, code);
+      }
+      const data = await response.json();
+      setUser(data);
+      return data;
+    },
+    [token]
+  );
+
   const value = useMemo(
     () => ({
       token,
@@ -192,8 +217,9 @@ export function AuthProvider({ children }) {
       logout,
       refreshUser,
       resendVerification,
+      updateProfile,
     }),
-    [token, user, isLoading, login, register, logout, refreshUser, resendVerification]
+    [token, user, isLoading, login, register, logout, refreshUser, resendVerification, updateProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

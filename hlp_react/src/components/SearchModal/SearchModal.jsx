@@ -8,6 +8,35 @@ import "./SearchModal.css";
 // по бэкенду на каждую букву, а ждать, пока пользователь закончит печатать.
 const DEBOUNCE_MS = 300;
 
+// Экранируем спецсимволы регулярных выражений в пользовательском запросе —
+// иначе поиск, например, "C++" сломал бы RegExp (см. highlightMatches ниже).
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Разбивает text по всем вхождениям query (регистронезависимо) и оборачивает
+// совпавшие куски в <mark> — используется и для заголовка, и для сниппета
+// результата поиска, чтобы пользователь сразу видел, где нашлось совпадение
+// (бэкенд ищет по title ИЛИ content, поэтому подсвечивать нужно в обоих
+// местах одинаково, а не только там, где бэкенд построил сниппет).
+function highlightMatches(text, query) {
+  const trimmed = query.trim();
+  if (!trimmed) return text;
+
+  const parts = text.split(new RegExp(`(${escapeRegExp(trimmed)})`, "gi"));
+  if (parts.length === 1) return text;
+
+  return parts.map((part, i) =>
+    part.toLowerCase() === trimmed.toLowerCase() ? (
+      <mark key={i} className="search-modal_highlight">
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  );
+}
+
 // Живой поиск по заголовку и тексту статьи (см. /articles/search/ на
 // бэкенде — routers/articles.py, search_articles). Модалка открывается
 // кнопкой-лупой в шапке (см. HeaderSection.jsx, data-bs-target="#searchModal"),
@@ -136,8 +165,12 @@ export default function SearchModal() {
                           className="search-modal_item-link"
                           onClick={closeModal}
                         >
-                          <div className="search-modal_item-title">{article.title}</div>
-                          <div className="search-modal_item-snippet">{article.snippet}</div>
+                          <div className="search-modal_item-title">
+                            {highlightMatches(article.title, query)}
+                          </div>
+                          <div className="search-modal_item-snippet">
+                            {highlightMatches(article.snippet, query)}
+                          </div>
                           {article.tags.length > 0 && (
                             <div className="search-modal_item-tags">
                               {article.tags.map((tag) => (

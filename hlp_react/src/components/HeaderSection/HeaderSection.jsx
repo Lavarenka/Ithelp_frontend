@@ -194,6 +194,12 @@ export default function Header({ isEn, onToggleLanguage }) {
                                 <span className="header_username">{user?.username}</span>
                             </button>
                             <ul className="dropdown-menu dropdown-menu-end header_user_menu">
+                                <li>
+                                    <Link className="dropdown-item" to="/profile">
+                                        <i className="fa-solid fa-user me-2"></i>
+                                        {t("header.profile")}
+                                    </Link>
+                                </li>
                                 {isAdmin && (
                                     <li>
                                         <Link className="dropdown-item" to="/admin">
@@ -202,7 +208,7 @@ export default function Header({ isEn, onToggleLanguage }) {
                                         </Link>
                                     </li>
                                 )}
-                                {isAdmin && <li><hr className="dropdown-divider" /></li>}
+                                <li><hr className="dropdown-divider" /></li>
                                 <li>
                                     <button type="button" className="dropdown-item" onClick={logout}>
                                         <i className="fa-solid fa-arrow-right-from-bracket me-2"></i>

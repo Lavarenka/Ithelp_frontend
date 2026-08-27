@@ -24,6 +24,7 @@
     "search": "Search",
     "favorites": "Favorites",
     "login": "Log in",
+    "profile": "Profile",
     "admin": "Admin",
     "logout": "Log out",
     "languageTitle": "Site language",
@@ -129,6 +130,28 @@
   "codeBlock": {
     "copy": "Copy",
     "copied": "Copied"
+  },
+  "profile": {
+    "title": "Profile",
+    "guestNotice": "Log in to see your profile.",
+    "avatarTitle": "Avatar",
+    "avatarAlt": "Your avatar",
+    "avatarUpload": "Upload image",
+    "avatarRemove": "Remove",
+    "avatarHint": "PNG, JPEG, WEBP or GIF, up to 1.5 MB.",
+    "avatarSaved": "Avatar updated.",
+    "avatarTypeError": "Please choose a PNG, JPEG, WEBP or GIF image.",
+    "avatarSizeError": "File is too large (max {{maxMb}} MB).",
+    "usernameTitle": "Username",
+    "usernameSaved": "Username updated.",
+    "passwordTitle": "Password",
+    "comingSoon": "coming soon",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "accountInfoTitle": "Account",
+    "emailVerified": "verified",
+    "emailUnverified": "not verified",
+    "registeredAt": "Registered"
   },
   "admin": {
     "loading": "Loading…",

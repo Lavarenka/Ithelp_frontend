@@ -27,6 +27,12 @@ class Settings(BaseSettings):
     frontend_base_url: str = "http://localhost:5173"
     email_verification_expire_hours: int = 48
 
+    # --- Аватар профиля (см. app/routers/auth.py, update_profile) ---
+    # Храним как data-URI (base64) прямо в колонке users.avatar, поэтому
+    # ограничиваем итоговый размер строки на уровне схемы — иначе кто угодно
+    # мог бы залить многомегабайтную "картинку" прямо в БД.
+    avatar_max_bytes: int = 1_500_000  # ~1.5 МБ на исходный файл до base64
+
     model_config = SettingsConfigDict(env_file=".env", env_prefix="", case_sensitive=False)
 
     @property
