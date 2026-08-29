@@ -3,24 +3,9 @@ import { useTranslation } from "react-i18next";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import Avatar from "../Avatar/Avatar";
 import { formatRelativeTime } from "../../utils/relativeTime";
+import { toPlainExcerpt } from "../../utils/markdown";
 
 const EXCERPT_LENGTH = 220;
-
-// Превью статьи в ленте — обычный текст, без Markdown-разметки. Полный
-// рендер (заголовки/картинки/код) показывается только на странице статьи
-// (см. MarkdownContent), а тут просто убираем markdown-синтаксис, чтобы в
-// карточке не мелькали "###", "```js" и звёздочки жирного текста.
-function toPlainExcerpt(markdown) {
-  if (!markdown) return "";
-  const plain = markdown
-    .replace(/```[\s\S]*?```/g, " ") // блоки кода целиком
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ") // картинки
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1") // ссылки — оставляем текст
-    .replace(/[#>*_`~-]/g, " ") // заголовки/акценты/списки/строки-разделители
-    .replace(/\s+/g, " ")
-    .trim();
-  return plain.length > EXCERPT_LENGTH ? `${plain.slice(0, EXCERPT_LENGTH).trim()}…` : plain;
-}
 
 const ArticleCard = ({ article }) => {
   const { t, i18n } = useTranslation();

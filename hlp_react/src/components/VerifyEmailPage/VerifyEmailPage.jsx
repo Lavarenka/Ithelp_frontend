@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { API_BASE_URL } from "../../api";
 import { useAuth } from "../../context/AuthContext";
+import SeoHead from "../SeoHead/SeoHead";
 
 // Страница по ссылке из письма подтверждения (см. app/mailer.py на
 // бэкенде: ссылка вида /verify-email?token=...). Не требует авторизации —
@@ -64,6 +65,9 @@ export default function VerifyEmailPage() {
     <div className="layout_main">
       <div className="body_row">
         <div className="body">
+          {/* noindex — служебная страница по одноразовой ссылке из письма,
+              индексировать нечего. */}
+          <SeoHead path="/verify-email" noindex />
           <Link to="/" className="article_back mb-3 d-inline-block">
             {t("common.backToArticles")}
           </Link>

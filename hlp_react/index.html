@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Без статичного <meta name="description"> здесь намеренно:
+         react-helmet-async (см. src/components/SeoHead) ДОБАВЛЯЕТ свой тег
+         при монтировании, а не заменяет — если оставить тег и тут, в DOM
+         после монтирования оказываются ДВА <meta name="description">
+         одновременно, и непонятно, какой из них возьмёт краулер. Реальные
+         краулеры (Google и большинство современных) выполняют JS и увидят
+         страничный description из SeoHead; для тех, что не выполняют JS,
+         сайт и так отдаёт только пустой #root (см. решение "мета-теги без
+         SSR/пре-рендеринга") — статичный фолбэк тут ничего не менял бы. -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
       rel="stylesheet"

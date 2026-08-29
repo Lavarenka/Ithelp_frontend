@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ArticleFeed from "../ArticleFeed/ArticleFeed";
 import { API_BASE_URL, withLang } from "../../api";
+import SeoHead from "../SeoHead/SeoHead";
 
 export default function TagPage() {
   const { t, i18n } = useTranslation();
@@ -45,6 +46,10 @@ export default function TagPage() {
     <div className="layout_main">
       <div className="body_row">
         <div className="body">
+          <SeoHead
+            title={t("tagPage.title", { tag: tag ? tag.name : slug })}
+            path={`/tags/${slug}`}
+          />
           <Link to="/" className="article_back mb-3 d-inline-block">
             {t("common.backToArticles")}
           </Link>

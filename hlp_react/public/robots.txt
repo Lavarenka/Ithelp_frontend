@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /profile
+Disallow: /favorites
+Disallow: /verify-email
+
+Sitemap: https://it-hlp.ru/sitemap.xml

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import AvatarCropModal from "./AvatarCropModal";
+import SeoHead from "../SeoHead/SeoHead";
 import "./ProfilePage.css";
 
 // Должно совпадать с settings.avatar_max_bytes на бэкенде (app/config.py) —
@@ -65,11 +66,13 @@ export default function ProfilePage() {
   const [cropSource, setCropSource] = useState(null); // data-URL исходного файла, пока открыт редактор кропа
   const fileInputRef = useRef(null);
 
+  // noindex — личный кабинет, персональные данные, не для индексации.
   if (isLoading) {
     return (
       <div className="layout_main">
         <div className="body_row">
           <div className="body">
+            <SeoHead title={t("profile.title")} path="/profile" noindex />
             <p className="body_state">{t("common.loading")}</p>
           </div>
         </div>
@@ -82,6 +85,7 @@ export default function ProfilePage() {
       <div className="layout_main">
         <div className="body_row">
           <div className="body">
+            <SeoHead title={t("profile.title")} path="/profile" noindex />
             <Link to="/" className="article_back mb-3 d-inline-block">
               {t("common.backToArticles")}
             </Link>
@@ -186,6 +190,7 @@ export default function ProfilePage() {
     <div className="layout_main">
       <div className="body_row">
         <div className="body">
+          <SeoHead title={t("profile.title")} path="/profile" noindex />
           <Link to="/" className="article_back mb-3 d-inline-block">
             {t("common.backToArticles")}
           </Link>

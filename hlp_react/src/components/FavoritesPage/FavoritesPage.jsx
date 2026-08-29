@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import ArticleFeed from "../ArticleFeed/ArticleFeed";
 import { useAuth } from "../../context/AuthContext";
 import { useFavorites } from "../../context/FavoritesContext";
+import SeoHead from "../SeoHead/SeoHead";
 
 export default function FavoritesPage() {
   const { t } = useTranslation();
@@ -12,11 +13,15 @@ export default function FavoritesPage() {
   // страницы (иначе убранная из избранного статья осталась бы видна до reload).
   const { favoriteIds } = useFavorites();
 
+  // noindex — персональная страница: URL один для всех, содержимое разное
+  // для каждого пользователя, гостям вообще показывает заглушку. Индексировать
+  // нечего и незачем (см. клarифицирующий вопрос про SEO-подход).
   if (isLoading) {
     return (
       <div className="layout_main">
         <div className="body_row">
           <div className="body">
+            <SeoHead title={t("favorites.title")} path="/favorites" noindex />
             <p className="body_state">{t("common.loading")}</p>
           </div>
         </div>
@@ -29,6 +34,7 @@ export default function FavoritesPage() {
       <div className="layout_main">
         <div className="body_row">
           <div className="body">
+            <SeoHead title={t("favorites.title")} path="/favorites" noindex />
             <Link to="/" className="article_back mb-3 d-inline-block">
               {t("common.backToArticles")}
             </Link>
@@ -45,6 +51,7 @@ export default function FavoritesPage() {
     <div className="layout_main">
       <div className="body_row">
         <div className="body">
+          <SeoHead title={t("favorites.title")} path="/favorites" noindex />
           <Link to="/" className="article_back mb-3 d-inline-block">
             {t("common.backToArticles")}
           </Link>

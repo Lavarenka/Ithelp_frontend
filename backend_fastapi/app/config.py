@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     # мог бы залить многомегабайтную "картинку" прямо в БД.
     avatar_max_bytes: int = 1_500_000  # ~1.5 МБ на исходный файл до base64
 
+    # --- SEO (см. app/routers/sitemap.py) ---
+    # Домен сайта для абсолютных ссылок в sitemap.xml (<loc>, hreflang alternates).
+    # it-hlp.ru — временная заглушка, пока сайт не задеплоен на реальный домен
+    # (см. также frontend/src/seoConfig.js — там та же заглушка для canonical/
+    # og:url; при смене домена поменять нужно в ОБОИХ местах).
+    site_base_url: str = "https://it-hlp.ru"
+
     model_config = SettingsConfigDict(env_file=".env", env_prefix="", case_sensitive=False)
 
     @property

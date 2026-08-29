@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { API_BASE_URL, withLang } from "../../api";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import MarkdownContent from "../MarkdownContent/MarkdownContent";
 import CommentSection from "../CommentSection/CommentSection";
+import SeoHead from "../SeoHead/SeoHead";
+import { toPlainExcerpt } from "../../utils/markdown";
+import { SITE_BASE_URL, SITE_NAME } from "../../seoConfig";
 
 const ArticlePage = () => {
   const { t, i18n } = useTranslation();
@@ -70,6 +74,42 @@ const ArticlePage = () => {
           {error && <p className="body_state text-danger">{error}</p>}
           {!loading && !error && article && (
             <>
+              <SeoHead
+                title={article.title}
+                description={toPlainExcerpt(article.content, 160)}
+                path={`/articles/${id}`}
+                type="article"
+              />
+              {/* JSON-LD (schema.org Article) — не покрывается SeoHead, т.к.
+                  это единственное место на сайте, где нужна структурированная
+                  разметка такого типа; отдельный <Helmet> здесь не мешает
+                  тому, что уже задан в SeoHead — react-helmet-async сливает
+                  теги из нескольких <Helmet> на странице. */}
+              <Helmet>
+                <script type="application/ld+json">
+                  {JSON.stringify({
+                    "@context": "https://schema.org",
+                    "@type": "Article",
+                    headline: article.title,
+                    description: toPlainExcerpt(article.content, 160),
+                    ...(article.created_at && { datePublished: article.created_at }),
+                    ...(article.author?.username && {
+                      author: {
+                        "@type": "Person",
+                        name: article.author.username,
+                      },
+                    }),
+                    publisher: {
+                      "@type": "Organization",
+                      name: SITE_NAME,
+                    },
+                    mainEntityOfPage: {
+                      "@type": "WebPage",
+                      "@id": `${SITE_BASE_URL}/articles/${id}`,
+                    },
+                  })}
+                </script>
+              </Helmet>
               <div className="d-flex align-items-start justify-content-between gap-3">
                 <h1>{article.title}</h1>
                 <FavoriteButton articleId={article.id} size="large" />

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { API_BASE_URL, withLang } from "../../api";
+import SeoHead from "../SeoHead/SeoHead";
 import "./AboutPage.css";
 
 // Иконка для каждой рубрики верхнего уровня — подобраны по slug (см.
@@ -56,6 +57,7 @@ export default function AboutPage() {
     <div className="layout_main">
       <div className="body_row">
         <div className="body about-page">
+          <SeoHead title={t("about.heroTitle")} description={t("about.heroLead")} path="/about" />
           <Link to="/" className="article_back mb-3 d-inline-block">
             {t("common.backToArticles")}
           </Link>
