@@ -2,15 +2,20 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.schemas.tag import TagOut
+from app.schemas.tag import TagOut, TagAdminOut
 
 
-class ArticleBase(BaseModel):
-    title: str = Field(min_length=1, max_length=200)
-    content: str = Field(min_length=1)
+class ArticleCreate(BaseModel):
+    """Заголовок и текст задаются сразу на обоих языках — админ вводит
+    полноценный перевод при создании статьи (см. AdminArticles.jsx: вкладки
+    RU/EN). *_en необязательны: можно сохранить только RU и дописать перевод
+    позже через ArticleUpdate — тогда роутер будет отдавать RU как запасной
+    вариант, пока EN не заполнен (см. routers/articles.py, _pick_lang())."""
 
-
-class ArticleCreate(ArticleBase):
+    title_ru: str = Field(min_length=1, max_length=200)
+    title_en: str | None = Field(default=None, max_length=200)
+    content_ru: str = Field(min_length=1)
+    content_en: str | None = None
     # Список id уже существующих тегов, которые нужно привязать к статье при создании.
     tag_ids: list[int] = []
 
@@ -19,8 +24,10 @@ class ArticleUpdate(BaseModel):
     """Все поля необязательны — обновляем только то, что передано (PATCH-семантика
     на PUT-роуте, для простоты формы редактирования в админке)."""
 
-    title: str | None = Field(default=None, min_length=1, max_length=200)
-    content: str | None = Field(default=None, min_length=1)
+    title_ru: str | None = Field(default=None, min_length=1, max_length=200)
+    title_en: str | None = Field(default=None, max_length=200)
+    content_ru: str | None = Field(default=None, min_length=1)
+    content_en: str | None = None
     tag_ids: list[int] | None = None
 
 
@@ -36,22 +43,45 @@ class ArticleAuthorOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ArticleOut(ArticleBase):
+class ArticleOut(BaseModel):
+    """title/content — уже готовые значения для текущего языка запроса,
+    роутер выбирает title_ru/title_en (и content_ru/content_en) с запасным
+    вариантом на RU и собирает этот объект вручную, а не через from_attributes
+    (см. routers/articles.py, _article_out()) — так же, как раньше уже
+    делалось для is_favorited/comments_count/favorites_count ниже."""
+
     id: int
+    title: str
+    content: str
     views: int
     created_at: datetime
     tags: list[TagOut] = []
     author: ArticleAuthorOut | None = None
-    # Оба поля не читаются из модели Article напрямую (from_attributes их не
-    # найдёт как атрибуты) — роутер проставляет их вручную после запроса,
-    # так как они зависят от текущего пользователя / требуют отдельного count.
     is_favorited: bool = False
     favorites_count: int = 0
-    # Тоже не читается из модели напрямую — роутер считает его вручную
-    # (см. _annotate_comments_count в routers/articles.py), учитывая только
-    # опубликованные (status="approved") комментарии, как и в публичном
-    # списке комментариев статьи.
     comments_count: int = 0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ArticleAdminOut(BaseModel):
+    """Полное двуязычное представление статьи — для формы редактирования в
+    админке (AdminArticles.jsx), где нужны сразу оба варианта заголовка и
+    текста, а не только тот, что подходит текущему языку интерфейса сайта.
+    tags — тоже двуязычные (TagAdminOut: name_ru/name_en, а не единое name,
+    как в обычном TagOut) — иначе на месте, где Tag.name раньше читался
+    from_attributes напрямую, Pydantic не найдёт такого атрибута (см.
+    app/models/tag.py: name разделён на name_ru/name_en)."""
+
+    id: int
+    title_ru: str
+    title_en: str | None = None
+    content_ru: str
+    content_en: str | None = None
+    views: int
+    created_at: datetime
+    tags: list[TagAdminOut] = []
+    author: ArticleAuthorOut | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -61,6 +91,14 @@ class ArticleListOut(BaseModel):
     когда останавливать подгрузку по скроллу (infinite scroll)."""
 
     items: list[ArticleOut]
+    total: int
+
+
+class ArticleAdminListOut(BaseModel):
+    """Как ArticleListOut, но с двуязычными карточками — список статей в
+    админке (см. AdminArticles.jsx)."""
+
+    items: list[ArticleAdminOut]
     total: int
 
 

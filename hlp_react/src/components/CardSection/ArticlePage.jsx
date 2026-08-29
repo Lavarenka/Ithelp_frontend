@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { API_BASE_URL } from "../../api";
+import { API_BASE_URL, withLang } from "../../api";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import MarkdownContent from "../MarkdownContent/MarkdownContent";
 import CommentSection from "../CommentSection/CommentSection";
 
 const ArticlePage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,7 +20,12 @@ const ArticlePage = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_BASE_URL}/articles/${id}`);
+        // lang не в зависимостях эффекта (см. ниже) — сознательно: смена
+        // языка сайта, пока статья уже открыта, не должна заново дёргать
+        // /articles/{id} и увеличивать views ещё раз (бэкенд считает
+        // каждый GET за просмотр). Прочитается на актуальном языке при
+        // следующем заходе на страницу.
+        const response = await fetch(`${API_BASE_URL}${withLang(`/articles/${id}`)}`);
         if (!response.ok) {
           throw new Error(
             response.status === 404

@@ -121,6 +121,51 @@
     margin-bottom: 1rem;
 }
 
+/* Переключатель RU/EN в форме статьи/тега — тот же принцип, что и вкладки
+   в других формах сайта: редактируем один язык за раз, чтобы форма не была
+   вдвое длиннее. Бейдж "нет перевода" использует ту же жёлтую палитру, что
+   и остальные предупреждения на сайте (см. ProfilePage/EmailVerifyBanner). */
+.admin-form_lang-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.admin-form_lang-tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.5rem 0.25rem;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.admin-form_lang-tab--active {
+    color: #212020;
+    border-bottom-color: #212020;
+}
+
+.admin-form_lang-tab-badge,
+.admin-table_lang-missing {
+    background: #fff3cd;
+    color: #664d03;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.admin-table_lang-missing {
+    margin-left: 0.5rem;
+}
+
 .admin-form_tags {
     display: flex;
     flex-wrap: wrap;

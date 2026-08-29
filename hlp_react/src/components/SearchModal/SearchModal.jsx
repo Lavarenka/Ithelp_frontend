@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { API_BASE_URL } from "../../api";
+import { API_BASE_URL, withLang } from "../../api";
 import "./SearchModal.css";
 
 // Пауза перед запросом после последнего нажатия клавиши — чтобы не бить
@@ -67,7 +67,7 @@ export default function SearchModal() {
     debounceRef.current = setTimeout(async () => {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/articles/search/?q=${encodeURIComponent(trimmed)}`
+          `${API_BASE_URL}${withLang(`/articles/search/?q=${encodeURIComponent(trimmed)}`)}`
         );
         if (!response.ok) throw new Error("search failed");
         const data = await response.json();

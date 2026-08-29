@@ -19,7 +19,7 @@ const COUNTS_POLL_INTERVAL = 20000;
  * Вынесено из BodySection, чтобы тот же механизм переиспользовать на странице тега.
  */
 export default function ArticleFeed({ listUrl, emptyMessage }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const resolvedEmptyMessage = emptyMessage ?? t("articleFeed.emptyDefault");
   const [articles, setArticles] = useState([]);
   const [total, setTotal] = useState(null);
@@ -64,10 +64,15 @@ export default function ArticleFeed({ listUrl, emptyMessage }) {
         setLoadingMore(false);
       }
     },
-    [listUrl]
+    // i18n.language — apiRequest сам подставит его в запрос (см. api.js,
+    // withLang), но чтобы лента реально перезагрузилась и карточки
+    // отрисовались на новом языке, нужно, чтобы смена языка пересоздавала
+    // fetchPage и тем самым перезапускала эффект первой загрузки ниже.
+    [listUrl, i18n.language]
   );
 
-  // Первая загрузка — перезапускается, если сменился listUrl (например, перешли на другой тег)
+  // Первая загрузка — перезапускается, если сменился listUrl (например,
+  // перешли на другой тег) или язык сайта (см. комментарий у fetchPage выше).
   useEffect(() => {
     loadedCountRef.current = 0;
     setArticles([]);

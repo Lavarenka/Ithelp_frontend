@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { apiRequest } from "../../api";
 
-const EMPTY_FORM = { name: "", slug: "", parent_id: "" };
+const EMPTY_FORM = { name_ru: "", name_en: "", slug: "", parent_id: "" };
 
 // Плоское представление дерева тегов с отступом — удобно для селекта "родитель"
 // и для таблицы, где сразу видна иерархия.
@@ -25,6 +25,7 @@ export default function AdminTags() {
 
   const [editingId, setEditingId] = useState(null); // null скрыт, "new" создание, число — id тега
   const [form, setForm] = useState(EMPTY_FORM);
+  const [formLang, setFormLang] = useState("ru");
   const [formError, setFormError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -34,7 +35,10 @@ export default function AdminTags() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await apiRequest("/tags/");
+      // /tags/admin/tree — двуязычная версия дерева (name_ru/name_en сразу
+      // оба), в отличие от обычного /tags/, который отдаёт только один
+      // язык (см. routers/tags.py, list_tags_tree_admin).
+      const data = await apiRequest("/tags/admin/tree");
       setTree(data);
     } catch (err) {
       setError(err.message);
@@ -50,16 +54,19 @@ export default function AdminTags() {
   const startCreate = () => {
     setEditingId("new");
     setForm(EMPTY_FORM);
+    setFormLang("ru");
     setFormError(null);
   };
 
   const startEdit = (tag) => {
     setEditingId(tag.id);
     setForm({
-      name: tag.name,
+      name_ru: tag.name_ru,
+      name_en: tag.name_en ?? "",
       slug: tag.slug,
       parent_id: tag.parent_id != null ? String(tag.parent_id) : "",
     });
+    setFormLang("ru");
     setFormError(null);
   };
 
@@ -75,7 +82,10 @@ export default function AdminTags() {
     setIsSaving(true);
     try {
       const payload = {
-        name: form.name,
+        name_ru: form.name_ru,
+        // "" -> null: перевода пока нет, роутер отдаст RU как запасной
+        // вариант (см. AdminArticles.jsx — та же логика для title_en/content_en).
+        name_en: form.name_en.trim() === "" ? null : form.name_en,
         slug: form.slug,
         parent_id: form.parent_id === "" ? null : Number(form.parent_id),
       };
@@ -96,8 +106,8 @@ export default function AdminTags() {
   const handleDelete = async (tag) => {
     const hasChildren = tag.children && tag.children.length > 0;
     const warning = hasChildren
-      ? t("admin.tags.confirmDeleteWithChildren", { name: tag.name })
-      : t("admin.tags.confirmDelete", { name: tag.name });
+      ? t("admin.tags.confirmDeleteWithChildren", { name: tag.name_ru })
+      : t("admin.tags.confirmDelete", { name: tag.name_ru });
     if (!window.confirm(warning)) return;
     try {
       await apiRequest(`/tags/${tag.id}`, { method: "DELETE" });
@@ -121,17 +131,51 @@ export default function AdminTags() {
         <form className="admin-form" onSubmit={handleSave}>
           <h3>{editingId === "new" ? t("admin.tags.formTitleNew") : t("admin.tags.formTitleEdit")}</h3>
 
-          <div className="mb-3">
-            <label className="form-label">{t("admin.tags.fieldName")}</label>
-            <input
-              type="text"
-              className="form-control"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              required
-              maxLength={100}
-            />
+          <div className="admin-form_lang-tabs" role="tablist">
+            <button
+              type="button"
+              className={`admin-form_lang-tab ${formLang === "ru" ? "admin-form_lang-tab--active" : ""}`}
+              onClick={() => setFormLang("ru")}
+            >
+              {t("admin.langTabs.ru")}
+            </button>
+            <button
+              type="button"
+              className={`admin-form_lang-tab ${formLang === "en" ? "admin-form_lang-tab--active" : ""}`}
+              onClick={() => setFormLang("en")}
+            >
+              {t("admin.langTabs.en")}
+              {form.name_en.trim() === "" && (
+                <span className="admin-form_lang-tab-badge">{t("admin.langTabs.missing")}</span>
+              )}
+            </button>
           </div>
+
+          {formLang === "ru" ? (
+            <div className="mb-3">
+              <label className="form-label">{t("admin.tags.fieldName")}</label>
+              <input
+                type="text"
+                className="form-control"
+                value={form.name_ru}
+                onChange={(e) => setForm((f) => ({ ...f, name_ru: e.target.value }))}
+                required
+                maxLength={100}
+              />
+            </div>
+          ) : (
+            <div className="mb-3">
+              <label className="form-label">{t("admin.tags.fieldName")}</label>
+              <input
+                type="text"
+                className="form-control"
+                value={form.name_en}
+                onChange={(e) => setForm((f) => ({ ...f, name_en: e.target.value }))}
+                maxLength={100}
+                placeholder={t("admin.langTabs.enPlaceholder")}
+              />
+            </div>
+          )}
 
           <div className="mb-3">
             <label className="form-label">{t("admin.tags.fieldSlug")}</label>
@@ -156,11 +200,11 @@ export default function AdminTags() {
             >
               <option value="">{t("admin.tags.noParentOption")}</option>
               {flatTags
-                .filter((t) => (editingId === "new" ? true : t.id !== editingId))
-                .map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {"— ".repeat(t.depth)}
-                    {t.name}
+                .filter((tag) => (editingId === "new" ? true : tag.id !== editingId))
+                .map((tag) => (
+                  <option key={tag.id} value={tag.id}>
+                    {"— ".repeat(tag.depth)}
+                    {tag.name_ru}
                   </option>
                 ))}
             </select>
@@ -197,7 +241,12 @@ export default function AdminTags() {
                 <tr key={tag.id}>
                   <td style={{ paddingLeft: `${12 + tag.depth * 24}px` }}>
                     {tag.depth > 0 && <span className="admin-table_tree-marker">└ </span>}
-                    {tag.name}
+                    {tag.name_ru}
+                    {!tag.name_en && (
+                      <span className="admin-table_lang-missing" title={t("admin.langTabs.missingHint")}>
+                        {t("admin.langTabs.missing")}
+                      </span>
+                    )}
                   </td>
                   <td className="admin-table_slug">{tag.slug}</td>
                   <td className="admin-table_actions">

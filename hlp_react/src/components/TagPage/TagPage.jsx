@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ArticleFeed from "../ArticleFeed/ArticleFeed";
-import { API_BASE_URL } from "../../api";
+import { API_BASE_URL, withLang } from "../../api";
 
 export default function TagPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { slug } = useParams();
   const [tag, setTag] = useState(null);
   const [tagError, setTagError] = useState(null);
@@ -17,7 +17,7 @@ export default function TagPage() {
       setTag(null);
       setTagError(null);
       try {
-        const response = await fetch(`${API_BASE_URL}/tags/${slug}`);
+        const response = await fetch(`${API_BASE_URL}${withLang(`/tags/${slug}`)}`);
         if (!response.ok) {
           throw new Error(
             response.status === 404
@@ -36,7 +36,10 @@ export default function TagPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug, t]);
+    // i18n.language — перезапрашиваем при смене языка, чтобы заголовок
+    // страницы ("Articles tagged: <tag.name>") показывал переведённое
+    // название тега, а не то, что было на предыдущем языке.
+  }, [slug, t, i18n.language]);
 
   return (
     <div className="layout_main">

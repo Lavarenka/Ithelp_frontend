@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./Header.css";
-import { API_BASE_URL } from "../../api";
+import { API_BASE_URL, withLang } from "../../api";
 import TypingLogo from "./TypingLogo";
 import AuthModal from "../AuthModal/AuthModal";
 import SearchModal from "../SearchModal/SearchModal";
@@ -78,7 +78,7 @@ function LanguageToggle({ isEn, onToggle }) {
 }
 
 export default function Header({ isEn, onToggleLanguage }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isCompact, setIsCompact] = useState(false);
   const [tags, setTags] = useState([]);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -99,7 +99,7 @@ export default function Header({ isEn, onToggleLanguage }) {
 
     const fetchTags = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/tags/`);
+        const response = await fetch(`${API_BASE_URL}${withLang("/tags/")}`);
         if (!response.ok) return;
         const data = await response.json();
         if (!cancelled) setTags(data);
@@ -113,7 +113,9 @@ export default function Header({ isEn, onToggleLanguage }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+    // Перезапрашиваем при смене языка сайта — иначе после переключения
+    // RU/EN пункты меню остались бы на прежнем языке до перезагрузки страницы.
+  }, [i18n.language]);
 
   return (
     <>

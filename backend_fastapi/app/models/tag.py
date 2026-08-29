@@ -17,8 +17,13 @@ class Tag(Base):
     __tablename__ = "tags"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    # slug — человекочитаемый идентификатор для URL (/tags/frontend), уникальный.
+    # Двуязычное название — та же логика, что и у Article.title_ru/title_en
+    # (см. models/article.py): name_ru обязателен, name_en опционален с
+    # запасным вариантом на RU, пока перевод не добавлен.
+    name_ru: Mapped[str] = mapped_column(String(100), nullable=False)
+    name_en: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # slug — человекочитаемый идентификатор для URL (/tags/frontend), уникальный,
+    # НЕ переводится (стабильный идентификатор в обоих языках).
     slug: Mapped[str] = mapped_column(String(120), nullable=False, unique=True, index=True)
 
     # Самоссылка для вложенности: у тега может быть родитель (или не быть — тогда это тег верхнего уровня).

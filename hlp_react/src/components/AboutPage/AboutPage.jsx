@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { API_BASE_URL } from "../../api";
+import { API_BASE_URL, withLang } from "../../api";
 import "./AboutPage.css";
 
 // Иконка для каждой рубрики верхнего уровня — подобраны по slug (см.
@@ -28,7 +28,7 @@ const FEATURES = [
 ];
 
 export default function AboutPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [topics, setTopics] = useState([]);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export default function AboutPage() {
 
     const fetchTopics = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/tags/`);
+        const response = await fetch(`${API_BASE_URL}${withLang("/tags/")}`);
         if (!response.ok) return;
         const data = await response.json();
         if (!cancelled) setTopics(data);
@@ -50,7 +50,7 @@ export default function AboutPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [i18n.language]);
 
   return (
     <div className="layout_main">

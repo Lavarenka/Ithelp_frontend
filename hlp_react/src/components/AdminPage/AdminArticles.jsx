@@ -4,7 +4,7 @@ import { apiRequest } from "../../api";
 
 const PAGE_SIZE = 10;
 
-const EMPTY_FORM = { title: "", content: "", tag_ids: [] };
+const EMPTY_FORM = { title_ru: "", title_en: "", content_ru: "", content_en: "", tag_ids: [] };
 
 export default function AdminArticles() {
   const { t } = useTranslation();
@@ -19,6 +19,10 @@ export default function AdminArticles() {
   const [allTags, setAllTags] = useState([]); // плоский список тегов для мультивыбора в форме
   const [editingId, setEditingId] = useState(null); // null = форма скрыта, "new" = создание
   const [form, setForm] = useState(EMPTY_FORM);
+  // Какая вкладка языка сейчас видна в форме — RU/EN редактируются по
+  // очереди, а не оба сразу, чтобы форма не была вдвое длиннее (см.
+  // AboutPage/ProfilePage — тот же принцип "один экран за раз" для сложных форм).
+  const [formLang, setFormLang] = useState("ru");
   const [formError, setFormError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -33,7 +37,10 @@ export default function AdminArticles() {
         limit: String(PAGE_SIZE),
       });
       if (search) params.set("search", search);
-      const data = await apiRequest(`/articles/?${params.toString()}`);
+      // /articles/admin/ — двуязычная версия списка (title_ru/title_en сразу
+      // оба), в отличие от обычного /articles/, который отдаёт только один
+      // язык (см. routers/articles.py, list_articles_admin).
+      const data = await apiRequest(`/articles/admin/?${params.toString()}`);
       setArticles(data.items);
       setTotal(data.total);
     } catch (err) {
@@ -49,16 +56,19 @@ export default function AdminArticles() {
 
   // Плоский список тегов для чекбоксов в форме — дерево превращаем в плоский
   // список "Родитель / Подтег", чтобы было видно вложенность без рекурсивного UI.
+  // Используем /tags/admin/tree, чтобы подписи чекбоксов показывали RU-название
+  // тега независимо от текущего языка интерфейса админки — это удобнее для
+  // администратора, который обычно думает на одном языке при работе с формой.
   useEffect(() => {
     let cancelled = false;
     const loadTags = async () => {
       try {
-        const tree = await apiRequest("/tags/");
+        const tree = await apiRequest("/tags/admin/tree");
         const flat = [];
         for (const root of tree) {
-          flat.push({ id: root.id, label: root.name });
+          flat.push({ id: root.id, label: root.name_ru });
           for (const child of root.children || []) {
-            flat.push({ id: child.id, label: `${root.name} / ${child.name}` });
+            flat.push({ id: child.id, label: `${root.name_ru} / ${child.name_ru}` });
           }
         }
         if (!cancelled) setAllTags(flat);
@@ -81,16 +91,20 @@ export default function AdminArticles() {
   const startCreate = () => {
     setEditingId("new");
     setForm(EMPTY_FORM);
+    setFormLang("ru");
     setFormError(null);
   };
 
   const startEdit = (article) => {
     setEditingId(article.id);
     setForm({
-      title: article.title,
-      content: article.content,
+      title_ru: article.title_ru,
+      title_en: article.title_en ?? "",
+      content_ru: article.content_ru,
+      content_en: article.content_en ?? "",
       tag_ids: (article.tags || []).map((t) => t.id),
     });
+    setFormLang("ru");
     setFormError(null);
   };
 
@@ -114,16 +128,21 @@ export default function AdminArticles() {
     setFormError(null);
     setIsSaving(true);
     try {
+      // EN — необязателен: пустая строка означает "перевода пока нет", и
+      // бэкенд должен получить null, а не "" (см. схемы ArticleCreate/
+      // ArticleUpdate — title_en/content_en опциональны, роутер подставит
+      // RU как запасной вариант, пока EN не заполнен).
+      const payload = {
+        title_ru: form.title_ru,
+        title_en: form.title_en.trim() === "" ? null : form.title_en,
+        content_ru: form.content_ru,
+        content_en: form.content_en.trim() === "" ? null : form.content_en,
+        tag_ids: form.tag_ids,
+      };
       if (editingId === "new") {
-        await apiRequest("/articles/", {
-          method: "POST",
-          body: { title: form.title, content: form.content, tag_ids: form.tag_ids },
-        });
+        await apiRequest("/articles/", { method: "POST", body: payload });
       } else {
-        await apiRequest(`/articles/${editingId}`, {
-          method: "PUT",
-          body: { title: form.title, content: form.content, tag_ids: form.tag_ids },
-        });
+        await apiRequest(`/articles/${editingId}`, { method: "PUT", body: payload });
       }
       cancelEdit();
       await loadArticles();
@@ -135,7 +154,7 @@ export default function AdminArticles() {
   };
 
   const handleDelete = async (article) => {
-    if (!window.confirm(t("admin.articles.confirmDelete", { title: article.title }))) return;
+    if (!window.confirm(t("admin.articles.confirmDelete", { title: article.title_ru }))) return;
     try {
       await apiRequest(`/articles/${article.id}`, { method: "DELETE" });
       await loadArticles();
@@ -169,28 +188,77 @@ export default function AdminArticles() {
         <form className="admin-form" onSubmit={handleSave}>
           <h3>{editingId === "new" ? t("admin.articles.formTitleNew") : t("admin.articles.formTitleEdit")}</h3>
 
-          <div className="mb-3">
-            <label className="form-label">{t("admin.articles.fieldTitle")}</label>
-            <input
-              type="text"
-              className="form-control"
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              required
-              maxLength={200}
-            />
+          <div className="admin-form_lang-tabs" role="tablist">
+            <button
+              type="button"
+              className={`admin-form_lang-tab ${formLang === "ru" ? "admin-form_lang-tab--active" : ""}`}
+              onClick={() => setFormLang("ru")}
+            >
+              {t("admin.langTabs.ru")}
+            </button>
+            <button
+              type="button"
+              className={`admin-form_lang-tab ${formLang === "en" ? "admin-form_lang-tab--active" : ""}`}
+              onClick={() => setFormLang("en")}
+            >
+              {t("admin.langTabs.en")}
+              {form.title_en.trim() === "" && form.content_en.trim() === "" && (
+                <span className="admin-form_lang-tab-badge">{t("admin.langTabs.missing")}</span>
+              )}
+            </button>
           </div>
 
-          <div className="mb-3">
-            <label className="form-label">{t("admin.articles.fieldContent")}</label>
-            <textarea
-              className="form-control"
-              rows={6}
-              value={form.content}
-              onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-              required
-            />
-          </div>
+          {formLang === "ru" ? (
+            <>
+              <div className="mb-3">
+                <label className="form-label">{t("admin.articles.fieldTitle")}</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={form.title_ru}
+                  onChange={(e) => setForm((f) => ({ ...f, title_ru: e.target.value }))}
+                  required
+                  maxLength={200}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">{t("admin.articles.fieldContent")}</label>
+                <textarea
+                  className="form-control"
+                  rows={6}
+                  value={form.content_ru}
+                  onChange={(e) => setForm((f) => ({ ...f, content_ru: e.target.value }))}
+                  required
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="mb-3">
+                <label className="form-label">{t("admin.articles.fieldTitle")}</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={form.title_en}
+                  onChange={(e) => setForm((f) => ({ ...f, title_en: e.target.value }))}
+                  maxLength={200}
+                  placeholder={t("admin.langTabs.enPlaceholder")}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">{t("admin.articles.fieldContent")}</label>
+                <textarea
+                  className="form-control"
+                  rows={6}
+                  value={form.content_en}
+                  onChange={(e) => setForm((f) => ({ ...f, content_en: e.target.value }))}
+                  placeholder={t("admin.langTabs.enPlaceholder")}
+                />
+              </div>
+            </>
+          )}
 
           {allTags.length > 0 && (
             <div className="mb-3">
@@ -244,12 +312,19 @@ export default function AdminArticles() {
                 {articles.map((article) => (
                   <tr key={article.id}>
                     <td>{article.id}</td>
-                    <td className="admin-table_title">{article.title}</td>
+                    <td className="admin-table_title">
+                      {article.title_ru}
+                      {!article.title_en && (
+                        <span className="admin-table_lang-missing" title={t("admin.langTabs.missingHint")}>
+                          {t("admin.langTabs.missing")}
+                        </span>
+                      )}
+                    </td>
                     <td>{article.author?.username ?? "—"}</td>
                     <td>
-                      {(article.tags || []).map((t) => (
-                        <span key={t.id} className="badge text-bg-secondary me-1">
-                          {t.name}
+                      {(article.tags || []).map((tag) => (
+                        <span key={tag.id} className="badge text-bg-secondary me-1">
+                          {tag.name_ru}
                         </span>
                       ))}
                     </td>

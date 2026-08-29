@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./SitebarSection.css";
-import { API_BASE_URL } from "../../api";
+import { API_BASE_URL, withLang } from "../../api";
 
 const POPULAR_LIMIT = 4;
 // Пока нет WebSocket/SSE — раз в 20с тихо перезапрашиваем топ статей, чтобы
@@ -11,13 +11,13 @@ const POPULAR_LIMIT = 4;
 const POLL_INTERVAL = 20000;
 
 export default function Sitebar() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [popularArticles, setPopularArticles] = useState([]);
 
   const fetchPopular = useCallback(async ({ signal } = {}) => {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/articles/popular/?limit=${POPULAR_LIMIT}`,
+        `${API_BASE_URL}${withLang(`/articles/popular/?limit=${POPULAR_LIMIT}`)}`,
         { signal }
       );
       if (!response.ok) return;
@@ -34,7 +34,9 @@ export default function Sitebar() {
     const controller = new AbortController();
     fetchPopular({ signal: controller.signal });
     return () => controller.abort();
-  }, [fetchPopular]);
+    // i18n.language — перезапрашиваем при смене языка, чтобы заголовки
+    // статей в сайдбаре обновились на переведённые.
+  }, [fetchPopular, i18n.language]);
 
   // Пересчитываем список после каждого просмотра статьи (событие шлёт
   // ArticlePage) — иначе счётчики в сайдбаре "застывают" до перезагрузки

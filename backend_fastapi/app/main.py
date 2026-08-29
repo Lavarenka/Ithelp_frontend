@@ -45,8 +45,84 @@ def _ensure_users_avatar_column() -> None:
         conn.execute(text("ALTER TABLE users ADD COLUMN avatar TEXT"))
 
 
+def _drop_column_if_exists(table: str, column: str) -> None:
+    """Пытается удалить колонку в отдельной транзакции — на случай движка БД
+    без поддержки DROP COLUMN ошибка не должна поломать транзакцию с уже
+    скопированными данными (см. вызовы ниже), поэтому это всегда отдельный
+    engine.begin(), а не часть основной транзакции миграции."""
+    try:
+        with engine.begin() as conn:
+            conn.execute(text(f"ALTER TABLE {table} DROP COLUMN {column}"))
+    except Exception:
+        pass
+
+
+def _ensure_articles_translation_columns() -> None:
+    """Локализация статей: разбиваем title/content на title_ru/title_en/
+    content_ru/content_en (см. app/models/article.py). Если таблица articles
+    уже существовала со старыми однoязычными колонками title/content, тут не
+    только добавляем новые колонки, но и КОПИРУЕМ существующие значения в
+    _ru — иначе уже написанные статьи "потеряли" бы текст. Старые колонки
+    title/content после копирования удаляем отдельным шагом (см.
+    _drop_column_if_exists выше) — модель их больше не знает, а раз они были
+    NOT NULL, оставлять их пустыми при вставке новых строк нельзя: INSERT в
+    articles упал бы с IntegrityError, потому что SQLAlchemy пишет только в
+    колонки, которые описаны в модели."""
+    inspector = inspect(engine)
+    if "articles" not in inspector.get_table_names():
+        return
+    columns = {col["name"] for col in inspector.get_columns("articles")}
+
+    with engine.begin() as conn:
+        if "title_ru" not in columns:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN title_ru VARCHAR(200)"))
+            if "title" in columns:
+                conn.execute(text("UPDATE articles SET title_ru = title WHERE title_ru IS NULL"))
+        if "title_en" not in columns:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN title_en VARCHAR(200)"))
+        if "content_ru" not in columns:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN content_ru TEXT"))
+            if "content" in columns:
+                conn.execute(text("UPDATE articles SET content_ru = content WHERE content_ru IS NULL"))
+        if "content_en" not in columns:
+            conn.execute(text("ALTER TABLE articles ADD COLUMN content_en TEXT"))
+        # На случай, если title_ru/content_ru всё ещё пустые (совсем новая
+        # таблица без старых колонок title/content) — модель требует их
+        # NOT NULL, подстрахуемся пустой строкой, чтобы не упасть на старте.
+        conn.execute(text("UPDATE articles SET title_ru = '' WHERE title_ru IS NULL"))
+        conn.execute(text("UPDATE articles SET content_ru = '' WHERE content_ru IS NULL"))
+
+    if "title" in columns:
+        _drop_column_if_exists("articles", "title")
+    if "content" in columns:
+        _drop_column_if_exists("articles", "content")
+
+
+def _ensure_tags_translation_columns() -> None:
+    """Та же логика, что и в _ensure_articles_translation_columns() выше, но
+    для Tag.name → name_ru/name_en (см. app/models/tag.py)."""
+    inspector = inspect(engine)
+    if "tags" not in inspector.get_table_names():
+        return
+    columns = {col["name"] for col in inspector.get_columns("tags")}
+
+    with engine.begin() as conn:
+        if "name_ru" not in columns:
+            conn.execute(text("ALTER TABLE tags ADD COLUMN name_ru VARCHAR(100)"))
+            if "name" in columns:
+                conn.execute(text("UPDATE tags SET name_ru = name WHERE name_ru IS NULL"))
+        if "name_en" not in columns:
+            conn.execute(text("ALTER TABLE tags ADD COLUMN name_en VARCHAR(100)"))
+        conn.execute(text("UPDATE tags SET name_ru = '' WHERE name_ru IS NULL"))
+
+    if "name" in columns:
+        _drop_column_if_exists("tags", "name")
+
+
 _ensure_users_email_verified_column()
 _ensure_users_avatar_column()
+_ensure_articles_translation_columns()
+_ensure_tags_translation_columns()
 
 app = FastAPI(title="it_hlp API", version="0.1.0")
 

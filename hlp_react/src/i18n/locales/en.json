@@ -183,6 +183,13 @@
     "title": "Admin panel",
     "loggedInAsPrefix": "Logged in as",
     "loggedInAsSuffix": "(admin)",
+    "langTabs": {
+      "ru": "Russian",
+      "en": "English",
+      "missing": "no translation",
+      "missingHint": "No English translation yet — the site falls back to Russian for this item.",
+      "enPlaceholder": "Leave blank to fall back to Russian until translated"
+    },
     "tabs": {
       "articles": "Articles",
       "tags": "Tags",
