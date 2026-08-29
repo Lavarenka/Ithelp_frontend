@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
+import Avatar from "../Avatar/Avatar";
+import { formatRelativeTime } from "../../utils/relativeTime";
 
 const EXCERPT_LENGTH = 220;
 
@@ -21,19 +23,22 @@ function toPlainExcerpt(markdown) {
 }
 
 const ArticleCard = ({ article }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const tags = article.tags ?? [];
 
   return (
     <div>
       <div className="body_item">
         <div className=" my-1 card_ ">
-          <div className="d-flex align-items-end card_item mb-1">
-            <div className="card_img me-2">
-              {/* <img src="assets/img/no-name.jpg" alt=""> */}
-            </div>
+          <div className="d-flex align-items-center card_item mb-1">
+            <Avatar
+              src={article.author?.avatar}
+              alt={article.author?.username}
+              size="md"
+              className="card_img me-2"
+            />
             <div className="card_login me-2">{article.author?.username ?? t("articleCard.authorFallback")}</div>
-            <div className="card_time">{t("articleCard.timeFallback")}</div>
+            <div className="card_time">{formatRelativeTime(article.created_at, i18n.language)}</div>
           </div>
           {tags.length > 0 && (
             <div className="d-flex card_tags mb-2">

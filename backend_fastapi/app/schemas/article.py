@@ -26,10 +26,12 @@ class ArticleUpdate(BaseModel):
 
 class ArticleAuthorOut(BaseModel):
     """Урезанная информация об авторе для карточки/страницы статьи —
-    без email и прочих личных данных."""
+    без email и прочих личных данных. avatar — для маленькой круглой
+    аватарки рядом с именем автора (см. ArticleCard.jsx на фронте)."""
 
     id: int
     username: str
+    avatar: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -85,9 +85,13 @@
 
 .comment-item_header {
     display: flex;
-    align-items: baseline;
-    gap: 0.6rem;
+    align-items: center;
+    gap: 0.5rem;
     margin-bottom: 0.35rem;
+}
+
+.comment-item_avatar {
+    flex-shrink: 0;
 }
 
 .comment-item_author {

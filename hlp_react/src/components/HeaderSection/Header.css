@@ -11,7 +11,7 @@
    почти-чёрный, просто с заметно более тёплым красным оттенком вместо
    нейтрально-коричневого #212020. */
 .header--ru {
-    background: rgb(27, 18, 18);
+    background: #2a1c1cff;
 }
 
 /* Компактный режим шапки — включается по классу при прокрутке вниз (см. HeaderSection.jsx) */
@@ -131,6 +131,10 @@
     margin-left: 0.4rem;
 }
 
+.header_avatar {
+    margin-right: 0.45rem;
+}
+
 .header_username {
     color: #c5d2d9;
     font-size: 14px;
@@ -141,7 +145,8 @@
 }
 
 /* На узких экранах текст имени не помещается рядом с бургером/логотипом —
-   заменяем его на иконку-человечка, но кнопка (и dropdown) остаются рабочими */
+   прячем текст, но аватарка (теперь уже сама по себе узнаваемая иконка
+   пользователя) и dropdown остаются на месте и рабочими. */
 @media (max-width: 575.98px) {
     .header_username {
         display: none;
@@ -151,11 +156,8 @@
         max-width: none;
     }
 
-    .header_user_toggle::before {
-        font-family: "Font Awesome 6 Free";
-        font-weight: 900;
-        content: "\f2bd"; /* fa-user-gear */
-        font-size: 1.1rem;
+    .header_avatar {
+        margin-right: 0;
     }
 }
 

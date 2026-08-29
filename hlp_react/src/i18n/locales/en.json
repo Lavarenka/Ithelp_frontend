@@ -56,7 +56,6 @@
   },
   "articleCard": {
     "authorFallback": "admin",
-    "timeFallback": "14 minutes ago",
     "shareTitle": "Share",
     "readMore": "Read more"
   },
@@ -142,6 +141,10 @@
     "avatarSaved": "Avatar updated.",
     "avatarTypeError": "Please choose a PNG, JPEG, WEBP or GIF image.",
     "avatarSizeError": "File is too large (max {{maxMb}} MB).",
+    "cropTitle": "Adjust your photo",
+    "cropZoom": "Zoom",
+    "cropHint": "Drag to reposition, use the slider to zoom.",
+    "cropConfirm": "Apply",
     "usernameTitle": "Username",
     "usernameSaved": "Username updated.",
     "passwordTitle": "Password",

@@ -6,6 +6,7 @@ import { API_BASE_URL } from "../../api";
 import TypingLogo from "./TypingLogo";
 import AuthModal from "../AuthModal/AuthModal";
 import SearchModal from "../SearchModal/SearchModal";
+import Avatar from "../Avatar/Avatar";
 import { useAuth } from "../../context/AuthContext";
 import { useFavorites } from "../../context/FavoritesContext";
 
@@ -191,6 +192,7 @@ export default function Header({ isEn, onToggleLanguage }) {
                                 aria-expanded="false"
                                 title={user?.email}
                             >
+                                <Avatar src={user?.avatar} alt={user?.username} size="sm" className="header_avatar avatar--on-dark" />
                                 <span className="header_username">{user?.username}</span>
                             </button>
                             <ul className="dropdown-menu dropdown-menu-end header_user_menu">

@@ -1,0 +1,59 @@
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar i {
+    color: rgba(0, 0, 0, 0.35);
+}
+
+/* --- размеры --- */
+
+.avatar--sm {
+    width: 22px;
+    height: 22px;
+}
+
+.avatar--sm i {
+    font-size: 11px;
+}
+
+.avatar--md {
+    width: 30px;
+    height: 30px;
+}
+
+.avatar--md i {
+    font-size: 14px;
+}
+
+.avatar--lg {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar--lg i {
+    font-size: 18px;
+}
+
+/* Тёмный фон (используется в шапке — .header — где страница светлая заглушка
+   слишком контрастная на тёмном фоне) — тон подобран под .header_username
+   и остальные приглушённые элементы шапки. */
+.avatar--on-dark {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.avatar--on-dark i {
+    color: rgba(255, 255, 255, 0.55);
+}

@@ -1,0 +1,78 @@
+.avatar-crop_overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1080; /* выше Bootstrap-модалок (1055) — крoп может быть открыт поверх формы */
+    padding: 1rem;
+}
+
+.avatar-crop_dialog {
+    background: #fff;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 420px;
+    padding: 1rem 1.25rem 1.25rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+}
+
+.avatar-crop_header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.avatar-crop_title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.avatar-crop_stage {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    background: #333;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.avatar-crop_controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1rem;
+}
+
+.avatar-crop_controls .form-range {
+    flex: 1;
+}
+
+.avatar-crop_zoom-icon {
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.avatar-crop_hint {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.5);
+    margin: 0.5rem 0 0;
+    text-align: center;
+}
+
+.avatar-crop_actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+@media (max-width: 480px) {
+    .avatar-crop_stage {
+        height: 260px;
+    }
+}

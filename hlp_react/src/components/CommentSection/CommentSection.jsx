@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { apiRequest } from "../../api";
 import { useAuth } from "../../context/AuthContext";
+import Avatar from "../Avatar/Avatar";
 import "./CommentSection.css";
 
 const PAGE_SIZE = 10;
@@ -234,6 +235,7 @@ export default function CommentSection({ articleId }) {
             {comments.map((comment) => (
               <li className="comment-item" key={comment.id}>
                 <div className="comment-item_header">
+                  <Avatar src={comment.author.avatar} alt={comment.author.username} size="sm" className="comment-item_avatar" />
                   <span className="comment-item_author">{comment.author.username}</span>
                   <span className="comment-item_date">{formatDate(comment.created_at, i18n.language)}</span>
                 </div>

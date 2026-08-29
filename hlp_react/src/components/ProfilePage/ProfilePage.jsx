@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
+import AvatarCropModal from "./AvatarCropModal";
 import "./ProfilePage.css";
 
 // Должно совпадать с settings.avatar_max_bytes на бэкенде (app/config.py) —
@@ -18,6 +19,15 @@ function readFileAsDataUrl(file) {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+// Быстрая оценка размера base64 data-URI в байтах — без декодирования, чтобы
+// не гонять большие строки через atob() ради простой проверки лимита. Формула
+// стандартная для base64: 4 символа кодируют 3 байта, минус padding ('=').
+function estimateDataUrlBytes(dataUrl) {
+  const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+  const padding = (base64.match(/=+$/) || [""])[0].length;
+  return Math.floor((base64.length * 3) / 4) - padding;
 }
 
 function formatDate(isoString, locale) {
@@ -52,6 +62,7 @@ export default function ProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState(null); // локальный предпросмотр до сохранения
   const [avatarState, setAvatarState] = useState("idle"); // idle | saving | saved | error
   const [avatarError, setAvatarError] = useState("");
+  const [cropSource, setCropSource] = useState(null); // data-URL исходного файла, пока открыт редактор кропа
   const fileInputRef = useRef(null);
 
   if (isLoading) {
@@ -99,6 +110,11 @@ export default function ProfilePage() {
     }
   };
 
+  // Выбор файла больше не грузит его сразу — сначала открываем редактор
+  // кропа (AvatarCropModal), и только после подтверждения там реальный
+  // аплоад уходит в handleCropConfirm ниже. Проверки типа/размера — на
+  // ИСХОДНОМ файле (до кропа): так пользователь сразу видит ошибку, не
+  // тратя время на подгонку рамки под файл, который всё равно не примут.
   const handleAvatarPick = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -121,9 +137,31 @@ export default function ProfilePage() {
 
     try {
       const dataUrl = await readFileAsDataUrl(file);
-      setAvatarPreview(dataUrl);
-      setAvatarState("saving");
-      await updateProfile({ avatar: dataUrl });
+      setCropSource(dataUrl);
+    } catch (err) {
+      setAvatarState("error");
+      setAvatarError(err.message || t("auth.genericError"));
+    }
+  };
+
+  const handleCropCancel = () => setCropSource(null);
+
+  const handleCropConfirm = async (croppedDataUrl) => {
+    setCropSource(null);
+
+    // Кроп сжимает в JPEG заново (см. AvatarCropModal) — итог почти всегда
+    // намного меньше исходника, но перепроверяем на всякий случай (та же
+    // логика, что и для исходного файла в handleAvatarPick выше).
+    if (estimateDataUrlBytes(croppedDataUrl) > AVATAR_MAX_BYTES) {
+      setAvatarState("error");
+      setAvatarError(t("profile.avatarSizeError", { maxMb: (AVATAR_MAX_BYTES / 1_000_000).toFixed(1) }));
+      return;
+    }
+
+    setAvatarPreview(croppedDataUrl);
+    setAvatarState("saving");
+    try {
+      await updateProfile({ avatar: croppedDataUrl });
       setAvatarState("saved");
     } catch (err) {
       setAvatarState("error");
@@ -292,6 +330,10 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {cropSource && (
+        <AvatarCropModal imageSrc={cropSource} onCancel={handleCropCancel} onConfirm={handleCropConfirm} />
+      )}
     </div>
   );
 }

@@ -5,10 +5,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class CommentAuthorOut(BaseModel):
-    """Как ArticleAuthorOut — только публичные поля автора комментария."""
+    """Как ArticleAuthorOut — только публичные поля автора комментария,
+    включая avatar для круглой аватарки рядом с именем."""
 
     id: int
     username: str
+    avatar: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

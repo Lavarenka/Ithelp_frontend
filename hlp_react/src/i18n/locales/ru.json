@@ -56,7 +56,6 @@
   },
   "articleCard": {
     "authorFallback": "admin",
-    "timeFallback": "14 минут назад",
     "shareTitle": "Поделиться",
     "readMore": "Читать далее"
   },
@@ -142,6 +141,10 @@
     "avatarSaved": "Аватар обновлён.",
     "avatarTypeError": "Выберите изображение в формате PNG, JPEG, WEBP или GIF.",
     "avatarSizeError": "Файл слишком большой (максимум {{maxMb}} МБ).",
+    "cropTitle": "Настройте фото",
+    "cropZoom": "Масштаб",
+    "cropHint": "Перетащите, чтобы сдвинуть, и используйте ползунок для масштаба.",
+    "cropConfirm": "Применить",
     "usernameTitle": "Имя пользователя",
     "usernameSaved": "Имя пользователя обновлено.",
     "passwordTitle": "Пароль",
