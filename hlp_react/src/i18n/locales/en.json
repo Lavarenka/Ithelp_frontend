@@ -130,6 +130,25 @@
     "copy": "Copy",
     "copied": "Copied"
   },
+  "about": {
+    "heroTitle": "About it_hlp",
+    "heroLead": "A blog for people learning to build sites and services — from markup to production — without wading through academic dryness.",
+    "storyP1": "Hi! I started it_hlp to collect, in one place, write-ups on the things I've had to figure out myself as a developer — from JavaScript and React basics to Docker, databases, and what actually happens when a site \"ships\" to a server. No fluff, and no pretending it's all trivial — just plain, step-by-step explanations.",
+    "storyP2": "I'm building the site itself too — FastAPI backend, React frontend — and it keeps growing new features: search, comments, favorites, a profile with an avatar. It's somewhere between a blog and a learning pet project, and that feels right — if I'm writing about development, the site itself might as well be a living example of it.",
+    "wipNote": "This page is still a work in progress — I'll keep expanding and polishing it, same as the rest of the site.",
+    "featuresTitle": "What the site can already do",
+    "features": {
+      "search": { "title": "Live search", "text": "Searches article titles and text as you type, with matches highlighted." },
+      "favorites": { "title": "Favorites", "text": "Save articles to come back to later — your list is always one click away." },
+      "comments": { "title": "Comments", "text": "Discuss any article with likes/dislikes; new comments go through moderation." },
+      "tags": { "title": "Topics & tags", "text": "Articles are organized by topic and subtopic — easy to find what you're studying." },
+      "profile": { "title": "Profile", "text": "Your own avatar (with in-browser cropping), a changeable username, and email verification status." },
+      "i18n": { "title": "Two languages", "text": "The interface and much of the content are available in Russian and English." }
+    },
+    "topicsTitle": "Blog topics",
+    "contactTitle": "Get in touch",
+    "contactSoon": "Social links and an email to reach me will show up here soon."
+  },
   "profile": {
     "title": "Profile",
     "guestNotice": "Log in to see your profile.",

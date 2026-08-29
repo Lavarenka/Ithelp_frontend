@@ -151,7 +151,7 @@ export default function Header({ isEn, onToggleLanguage }) {
                                             <Link className="nav-link text-underlined" aria-current="page" to="/">{t("header.home")}</Link>
                                         </li>
                                         <li className="nav-item">
-                                            <a className="nav-link text-underlined" href="#">{t("header.about")}</a>
+                                            <Link className="nav-link text-underlined" to="/about">{t("header.about")}</Link>
                                         </li>
                                         {tags.map((tag) => (
                                           <TagMenuItem key={tag.id} tag={tag} />

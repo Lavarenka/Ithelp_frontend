@@ -11,6 +11,7 @@ import AdminPage from "./components/AdminPage/AdminPage";
 import FavoritesPage from "./components/FavoritesPage/FavoritesPage";
 import VerifyEmailPage from "./components/VerifyEmailPage/VerifyEmailPage";
 import ProfilePage from "./components/ProfilePage/ProfilePage";
+import AboutPage from "./components/AboutPage/AboutPage";
 import CookieBanner from "./components/CookieBanner/CookieBanner";
 import EmailVerifyBanner from "./components/EmailVerifyBanner/EmailVerifyBanner";
 
@@ -51,6 +52,7 @@ function App() {
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/about" element={<AboutPage />} />
               </Routes>
               <Sitebar />
             </div>
