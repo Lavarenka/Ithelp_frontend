@@ -1,76 +1,67 @@
-"""Простая капча "реши пример" — без сторонних сервисов и API-ключей.
+"""Google reCAPTCHA v2 («Я не робот») — проверка на стороне сервера.
 
 Как это работает:
-1. Фронтенд запрашивает GET /auth/captcha — получает {id, question}.
-2. Ответ (число) хранится только на сервере, в памяти процесса, привязанный
-   к id и с TTL в несколько минут — клиенту он никогда не отправляется.
-3. При регистрации/логине клиент присылает {captcha_id, captcha_answer};
-   verify_captcha сверяет с сохранённым ответом и одноразово "сжигает" challenge
-   (повторно использовать тот же id нельзя — защита от повторной отправки формы).
+1. На фронтенде (hlp_react/src/components/ReCaptcha) пользователь отмечает
+   «Я не робот» в виджете Google — виджет выдаёт одноразовый токен.
+2. Токен уходит вместе с формой регистрации/входа (поле captcha_token).
+3. Здесь сервер отправляет токен и СЕКРЕТНЫЙ ключ в Google (siteverify) —
+   только Google знает, решил ли человек капчу на самом деле. Галочка на
+   фронтенде сама по себе ничего не гарантирует, вся защита — в этой проверке.
 
-Это осознанно не "настоящая" капча уровня reCAPTCHA — она не отличит человека
-от продвинутого бота, читающего JS. Но контрольная проверка на бэкенде (а не
-только чекбокс на фронте) уже отсекает самый частый случай: прямой POST-запрос
-на /auth/register в обход формы, который не подтягивает вопрос и не решает его.
+Токен одноразовый и живёт ~2 минуты: повторно отправить тот же токен нельзя,
+Google ответит success=false (поэтому фронтенд сбрасывает виджет после
+каждой неудачной отправки формы).
 
-Хранилище — простой dict в памяти процесса. Для одного uvicorn-воркера (как тут)
-этого достаточно; при масштабировании на несколько процессов/машин потребуется
-вынести в Redis или БД — но для этого проекта это избыточно.
+Ключи — в .env (RECAPTCHA_SECRET_KEY здесь, VITE_RECAPTCHA_SITE_KEY на
+фронтенде). Если их не задать, используются официальные ТЕСТОВЫЕ ключи
+Google: капча показывается с красной надписью «только для тестирования» и
+пропускает всех — годится для локальной разработки, но не для продакшена.
 """
 
-import random
-import string
-import time
-from threading import Lock
+import json
+import logging
+import urllib.error
+import urllib.parse
+import urllib.request
 
-CAPTCHA_TTL_SECONDS = 5 * 60  # challenge живёт 5 минут, потом протухает
-_MAX_STORE_SIZE = 5000  # защита от неограниченного роста памяти, если challenge никто не решает
+from app.config import GOOGLE_RECAPTCHA_TEST_SECRET_KEY, settings
 
-_store: dict[str, tuple[int, float]] = {}  # captcha_id -> (answer, expires_at)
-_lock = Lock()
+logger = logging.getLogger(__name__)
 
+VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify"
+VERIFY_TIMEOUT_SECONDS = 5
 
-def _generate_id() -> str:
-    return "".join(random.choices(string.ascii_letters + string.digits, k=24))
-
-
-def _purge_expired(now: float) -> None:
-    expired = [cid for cid, (_, exp) in _store.items() if exp < now]
-    for cid in expired:
-        _store.pop(cid, None)
+if settings.recaptcha_secret_key == GOOGLE_RECAPTCHA_TEST_SECRET_KEY:
+    logger.warning(
+        "reCAPTCHA: используется ТЕСТОВЫЙ ключ Google — капча пропускает всех. "
+        "Для продакшена задай RECAPTCHA_SECRET_KEY в .env (см. DEPLOY_CHECKLIST.md)."
+    )
 
 
-def create_captcha() -> tuple[str, str, int]:
-    """Возвращает (captcha_id, question, answer). answer наружу (в HTTP-ответ)
-    не идёт — только question; answer нужен только вызывающему коду в тестах."""
-    a = random.randint(1, 9)
-    b = random.randint(1, 9)
-    answer = a + b
-    question = f"{a} + {b}"
-
-    now = time.time()
-    with _lock:
-        if len(_store) >= _MAX_STORE_SIZE:
-            _purge_expired(now)
-        captcha_id = _generate_id()
-        _store[captcha_id] = (answer, now + CAPTCHA_TTL_SECONDS)
-
-    return captcha_id, question, answer
-
-
-def verify_captcha(captcha_id: str | None, answer: int | None) -> bool:
-    """Одноразовая проверка: challenge удаляется независимо от результата —
-    повторно предъявить тот же captcha_id (даже с верным ответом) нельзя."""
-    if not captcha_id or answer is None:
+def verify_captcha(token: str | None) -> bool:
+    """True, только если Google подтвердил, что токен настоящий и ещё не
+    использован. При любой ошибке (Google недоступен, таймаут, битый ответ)
+    — False: лучше попросить человека повторить, чем пропустить бота."""
+    if not token:
         return False
 
-    now = time.time()
-    with _lock:
-        entry = _store.pop(captcha_id, None)
+    body = urllib.parse.urlencode(
+        {"secret": settings.recaptcha_secret_key, "response": token}
+    ).encode()
+    request = urllib.request.Request(VERIFY_URL, data=body, method="POST")
 
-    if entry is None:
+    try:
+        with urllib.request.urlopen(request, timeout=VERIFY_TIMEOUT_SECONDS) as response:
+            result = json.load(response)
+    except (urllib.error.URLError, TimeoutError, ValueError) as exc:
+        logger.warning("reCAPTCHA: не удалось проверить токен у Google: %s", exc)
         return False
-    expected_answer, expires_at = entry
-    if expires_at < now:
+
+    if not result.get("success"):
+        # warning, а не info — иначе в консоли uvicorn этой строки не видно, и
+        # непонятно, почему капча "не проходит". Частая причина — ключи из
+        # разных пар: site key на фронтенде не от этого secret key
+        # (error-codes тогда invalid-input-response / invalid-input-secret).
+        logger.warning("reCAPTCHA: Google отклонил токен, error-codes=%s", result.get("error-codes"))
         return False
-    return answer == expected_answer
+    return True

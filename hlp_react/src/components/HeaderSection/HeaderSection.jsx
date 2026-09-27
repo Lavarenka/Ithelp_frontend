@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./Header.css";
-import { API_BASE_URL, withLang } from "../../api";
+import { apiFetch } from "../../api";
 import TypingLogo from "./TypingLogo";
 import AuthModal from "../AuthModal/AuthModal";
 import SearchModal from "../SearchModal/SearchModal";
@@ -99,7 +99,7 @@ export default function Header({ isEn, onToggleLanguage }) {
 
     const fetchTags = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}${withLang("/tags/")}`);
+        const response = await apiFetch("/tags/");
         if (!response.ok) return;
         const data = await response.json();
         if (!cancelled) setTags(data);

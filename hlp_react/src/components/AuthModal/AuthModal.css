@@ -32,15 +32,20 @@
 
 /* Блок капчи (см. AuthModal.jsx) — лёгкая рамка, чтобы визуально отделить
    чекбокс "Я не робот" и раскрывающийся под ним вопрос от остальных полей формы. */
+/* Виджет Google reCAPTCHA (см. components/ReCaptcha) — у него своя рамка,
+   поэтому без собственной рамки/фона вокруг. min-height — чтобы форма не
+   прыгала, пока скрипт Google грузится (виджет 78px в высоту). */
 .auth-modal_captcha {
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    border-radius: 6px;
-    padding: 0.75rem 1rem;
-    background: rgba(0, 0, 0, 0.02);
+    min-height: 78px;
 }
 
-.auth-modal_captcha-challenge {
-    margin-top: 0.75rem;
+/* Виджет Google фиксированной ширины 304px — на совсем узких телефонах
+   чуть уменьшаем его, чтобы он не вылезал за край модалки. */
+@media (max-width: 380px) {
+    .auth-modal_captcha .recaptcha > div:first-child {
+        transform: scale(0.88);
+        transform-origin: 0 0;
+    }
 }
 
 .auth-modal_captcha-loading {

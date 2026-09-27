@@ -1,4 +1,11 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Официальный тестовый секретный ключ Google reCAPTCHA v2 — капча с ним
+# пропускает всех. Используется по умолчанию, чтобы проект запускался
+# локально без регистрации ключей. В продакшене обязательно задать свой
+# RECAPTCHA_SECRET_KEY в .env (см. app/captcha.py, DEPLOY_CHECKLIST.md).
+GOOGLE_RECAPTCHA_TEST_SECRET_KEY = "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
 
 
 class Settings(BaseSettings):
@@ -40,7 +47,19 @@ class Settings(BaseSettings):
     # og:url; при смене домена поменять нужно в ОБОИХ местах).
     site_base_url: str = "https://it-hlp.ru"
 
+    # --- Google reCAPTCHA v2 (см. app/captcha.py) ---
+    # Секретный ключ — только на бэкенде, на фронтенд не попадает никогда.
+    recaptcha_secret_key: str = GOOGLE_RECAPTCHA_TEST_SECRET_KEY
+
     model_config = SettingsConfigDict(env_file=".env", env_prefix="", case_sensitive=False)
+
+    @field_validator("recaptcha_secret_key")
+    @classmethod
+    def _recaptcha_default_if_empty(cls, value: str) -> str:
+        # Пустая строка в .env (RECAPTCHA_SECRET_KEY=) — то же самое, что
+        # "не задано": берём тестовый ключ, а не отправляем в Google пустой
+        # секрет, из-за которого любая капча считалась бы непройденной.
+        return value.strip() or GOOGLE_RECAPTCHA_TEST_SECRET_KEY
 
     @property
     def smtp_configured(self) -> bool:

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "./SitebarSection.css";
-import { API_BASE_URL, withLang } from "../../api";
+import { apiFetch } from "../../api";
 
 const POPULAR_LIMIT = 4;
 // Пока нет WebSocket/SSE — раз в 20с тихо перезапрашиваем топ статей, чтобы
@@ -16,10 +16,7 @@ export default function Sitebar() {
 
   const fetchPopular = useCallback(async ({ signal } = {}) => {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}${withLang(`/articles/popular/?limit=${POPULAR_LIMIT}`)}`,
-        { signal }
-      );
+      const response = await apiFetch(`/articles/popular/?limit=${POPULAR_LIMIT}`, { signal });
       if (!response.ok) return;
       const data = await response.json();
       setPopularArticles(data);

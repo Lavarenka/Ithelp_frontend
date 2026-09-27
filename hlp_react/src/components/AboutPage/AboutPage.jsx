@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { API_BASE_URL, withLang } from "../../api";
+import { apiFetch } from "../../api";
 import SeoHead from "../SeoHead/SeoHead";
 import "./AboutPage.css";
 
@@ -37,7 +37,7 @@ export default function AboutPage() {
 
     const fetchTopics = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}${withLang("/tags/")}`);
+        const response = await apiFetch("/tags/");
         if (!response.ok) return;
         const data = await response.json();
         if (!cancelled) setTopics(data);

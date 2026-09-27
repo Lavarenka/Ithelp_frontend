@@ -104,15 +104,14 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(
-    async (usernameOrEmail, password, captcha) => {
+    async (usernameOrEmail, password, captchaToken) => {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username_or_email: usernameOrEmail,
           password,
-          captcha_id: captcha?.captchaId ?? null,
-          captcha_answer: captcha?.answer ?? null,
+          captcha_token: captchaToken ?? null,
         }),
       });
       if (!response.ok) {
@@ -127,7 +126,7 @@ export function AuthProvider({ children }) {
   );
 
   const register = useCallback(
-    async (username, email, password, passwordConfirm, captcha) => {
+    async (username, email, password, passwordConfirm, captchaToken) => {
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,8 +135,7 @@ export function AuthProvider({ children }) {
           email,
           password,
           password_confirm: passwordConfirm,
-          captcha_id: captcha?.captchaId ?? null,
-          captcha_answer: captcha?.answer ?? null,
+          captcha_token: captchaToken ?? null,
         }),
       });
       if (!response.ok) {

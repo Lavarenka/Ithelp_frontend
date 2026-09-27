@@ -2,7 +2,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy import select, or_
 from sqlalchemy.orm import Session
 
-from app.captcha import create_captcha, verify_captcha
+from app.captcha import verify_captcha
 from app.database import get_db
 from app.deps import get_current_user
 from app.login_attempts import needs_captcha, record_failure, record_success
@@ -14,7 +14,6 @@ from app.schemas.user import (
     UserOut,
     UserProfileUpdate,
     TokenOut,
-    CaptchaOut,
     EmailVerifyOut,
 )
 from app.security import (
@@ -36,24 +35,15 @@ def _dispatch_verification_email(user_id: int, email: str, username: str) -> Non
     send_verification_email(email, username, token)
 
 
-@router.get("/captcha", response_model=CaptchaOut)
-def get_captcha():
-    """Выдаёт новый challenge для капчи "реши пример" — см. app/captcha.py.
-    Дергается фронтендом при показе формы регистрации, а на логине — как
-    только бэкенд ответит login_required_captcha=true (см. ниже)."""
-    captcha_id, question, _answer = create_captcha()
-    return CaptchaOut(captcha_id=captcha_id, question=question)
-
-
 @router.post("/register", response_model=TokenOut, status_code=201)
 def register(payload: UserRegister, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    # Капча на регистрации обязательна всегда — без верного challenge/ответа
-    # запрос отклоняется, что бы ни было выставлено на фронтенде (чекбокс
-    # там — просто UI, реальная защита именно здесь).
-    if not verify_captcha(payload.captcha_id, payload.captcha_answer):
+    # Капча на регистрации обязательна всегда — токен проверяется у Google
+    # (см. app/captcha.py), без подтверждения запрос отклоняется, что бы ни
+    # было на фронтенде: галочка там — просто UI, реальная защита здесь.
+    if not verify_captcha(payload.captcha_token):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"code": "captcha_invalid", "detail": "Капча не пройдена — обновите её и попробуйте снова"},
+            detail={"code": "captcha_invalid", "detail": "Капча не пройдена — отметьте «Я не робот» ещё раз"},
         )
 
     existing = db.execute(
@@ -100,19 +90,19 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
     # user.id, потому что счётчик должен расти и для несуществующих логинов —
     # иначе капчу можно обойти простым перебором несуществующих имён.
     if needs_captcha(payload.username_or_email):
-        # Клиент ещё не прислал captcha_id вовсе (первая попытка после того,
+        # Клиент ещё не прислал токен капчи вовсе (первая попытка после того,
         # как порог был превышен) — отдаём отдельный код, чтобы фронтенд
-        # понял, что нужно запросить challenge и переспросить пользователя,
+        # понял, что нужно показать капчу и переспросить пользователя,
         # а не показывать это как "неверный логин/пароль".
-        if payload.captcha_id is None:
+        if not payload.captcha_token:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail={"code": "captcha_required", "detail": "Слишком много неудачных попыток — подтвердите капчу"},
             )
-        if not verify_captcha(payload.captcha_id, payload.captcha_answer):
+        if not verify_captcha(payload.captcha_token):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail={"code": "captcha_invalid", "detail": "Капча не пройдена — обновите её и попробуйте снова"},
+                detail={"code": "captcha_invalid", "detail": "Капча не пройдена — отметьте «Я не робот» ещё раз"},
             )
 
     user = db.execute(

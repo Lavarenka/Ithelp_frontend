@@ -113,3 +113,29 @@ img {
 
 /***************************** basic *******************************************/
 
+
+/* --- Плавная смена языка (см. toggleLanguage в App.jsx) ---
+   Гасим только то, где есть переводимый текст: контент страницы, меню в
+   шапке и подвал (их .container, а не сами .header/.footer — фон у них
+   должен остаться видимым и плавно перекраситься, он и так анимируется
+   своим transition: background-color). Переключатель RU/EN, поиск и
+   иконки в шапке не гаснут. */
+main.main,
+.header_row_menu,
+.footer > .container {
+    transition: opacity .2s ease;
+}
+
+.wrapper--lang-fading main.main,
+.wrapper--lang-fading .header_row_menu,
+.wrapper--lang-fading .footer > .container {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    main.main,
+    .header_row_menu,
+    .footer > .container {
+        transition: none;
+    }
+}

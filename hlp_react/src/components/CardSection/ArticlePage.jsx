@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
-import { API_BASE_URL, withLang } from "../../api";
+import { apiFetch } from "../../api";
 import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import MarkdownContent from "../MarkdownContent/MarkdownContent";
 import CommentSection from "../CommentSection/CommentSection";
@@ -16,30 +16,35 @@ const ArticlePage = () => {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // id статьи, которая уже загружена на странице. Если эффект сработал, а id
+  // тот же — значит, сменился только язык сайта: перечитываем статью на
+  // новом языке, но БЕЗ засчитывания просмотра (count_view=false на бэкенде)
+  // и без показа "Загрузка..." (старый текст просто заменится новым — он в
+  // этот момент всё равно погашен, см. toggleLanguage в App.jsx).
+  const loadedIdRef = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
+    const isLanguageRefetch = loadedIdRef.current === id;
 
     const fetchArticle = async () => {
-      setLoading(true);
+      if (!isLanguageRefetch) setLoading(true);
       setError(null);
       try {
-        // lang не в зависимостях эффекта (см. ниже) — сознательно: смена
-        // языка сайта, пока статья уже открыта, не должна заново дёргать
-        // /articles/{id} и увеличивать views ещё раз (бэкенд считает
-        // каждый GET за просмотр). Прочитается на актуальном языке при
-        // следующем заходе на страницу.
-        const response = await fetch(`${API_BASE_URL}${withLang(`/articles/${id}`)}`);
+        const path = isLanguageRefetch ? `/articles/${id}?count_view=false` : `/articles/${id}`;
+        const response = await apiFetch(path);
         if (!response.ok) {
           throw new Error(
             response.status === 404
-              ? t("articlePage.notFound")
-              : t("common.requestError", { status: response.status })
+              ? i18n.t("articlePage.notFound")
+              : i18n.t("common.requestError", { status: response.status })
           );
         }
         const data = await response.json();
         if (!cancelled) {
           setArticle(data);
+          loadedIdRef.current = id;
+          if (isLanguageRefetch) return;
           // Просмотр статьи увеличивает views на бэкенде — оповещаем
           // остальную страницу (сайдбар "Популярные статьи"), чтобы
           // счётчик обновился без ручной перезагрузки. Простое глобальное
@@ -58,7 +63,12 @@ const ArticlePage = () => {
     return () => {
       cancelled = true;
     };
-  }, [id, t]);
+    // t сюда сознательно не входит (тексты ошибок берём через i18n.t): ссылка
+    // на t меняется при смене языка, и раньше из-за этого статья при
+    // переключении RU/EN перезапрашивалась обычным GET и получала лишний
+    // просмотр. Теперь смену языка отслеживаем явно через i18n.language.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, i18n.language]);
 
   const tags = article?.tags ?? [];
 

@@ -279,6 +279,10 @@ def list_popular_articles(
 def get_article(
     article_id: int,
     lang: str = Query(default="ru"),
+    # count_view=false — перечитать статью, не засчитывая просмотр. Нужно
+    # фронтенду при смене языка на уже открытой статье (ArticlePage.jsx):
+    # это тот же читатель на той же странице, а не новый просмотр.
+    count_view: bool = Query(default=True),
     db: Session = Depends(get_db),
     current_user: User | None = Depends(get_current_user_optional),
 ):
@@ -291,9 +295,10 @@ def get_article(
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found")
 
-    article.views += 1
-    db.commit()
-    db.refresh(article)
+    if count_view:
+        article.views += 1
+        db.commit()
+        db.refresh(article)
     _annotate_favorites(db, [article], current_user)
     _annotate_comments_count(db, [article])
     return _article_out(article, lang)

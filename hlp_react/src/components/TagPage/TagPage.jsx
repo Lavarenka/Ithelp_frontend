@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import ArticleFeed from "../ArticleFeed/ArticleFeed";
-import { API_BASE_URL, withLang } from "../../api";
+import { apiFetch } from "../../api";
 import SeoHead from "../SeoHead/SeoHead";
 
 export default function TagPage() {
@@ -18,7 +18,7 @@ export default function TagPage() {
       setTag(null);
       setTagError(null);
       try {
-        const response = await fetch(`${API_BASE_URL}${withLang(`/tags/${slug}`)}`);
+        const response = await apiFetch(`/tags/${slug}`);
         if (!response.ok) {
           throw new Error(
             response.status === 404

@@ -16,9 +16,8 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(min_length=6, max_length=128)
     password_confirm: str = Field(min_length=1, max_length=128)
-    # Капча — обязательна на регистрации всегда (см. app/captcha.py).
-    captcha_id: str = Field(min_length=1)
-    captcha_answer: int
+    # Токен Google reCAPTCHA — обязателен на регистрации всегда (см. app/captcha.py).
+    captcha_token: str = Field(min_length=1)
 
     @field_validator("username")
     @classmethod
@@ -41,9 +40,8 @@ class UserLogin(BaseModel):
     password: str = Field(min_length=1)
     # Капча на логине требуется не всегда — только после нескольких неудачных
     # попыток подряд для этого же логина (см. app/login_attempts.py). Поэтому
-    # оба поля опциональны на уровне схемы; обязательность проверяет роутер.
-    captcha_id: str | None = None
-    captcha_answer: int | None = None
+    # поле опционально на уровне схемы; обязательность проверяет роутер.
+    captcha_token: str | None = None
 
 
 class UserOut(BaseModel):
@@ -122,11 +120,6 @@ class UserRoleUpdate(BaseModel):
 
 class UserActiveUpdate(BaseModel):
     is_active: bool
-
-
-class CaptchaOut(BaseModel):
-    captcha_id: str
-    question: str
 
 
 class EmailVerifyOut(BaseModel):

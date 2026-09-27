@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session, selectinload
 
@@ -6,6 +6,7 @@ from app.database import get_db
 from app.deps import get_current_user
 from app.models import Article, Favorite, User
 from app.schemas import ArticleListOut, FavoriteStatusOut
+from app.routers.articles import _article_out, _annotate_comments_count
 
 router = APIRouter(prefix="/favorites", tags=["favorites"])
 
@@ -22,6 +23,7 @@ def _favorites_count(db: Session, article_id: int) -> int:
 def list_my_favorites(
     skip: int = 0,
     limit: int = 10,
+    lang: str = Query(default="ru"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -42,8 +44,12 @@ def list_my_favorites(
     for article in items:
         article.is_favorited = True
         article.favorites_count = _favorites_count(db, article.id)
+    _annotate_comments_count(db, items)
 
-    return ArticleListOut(items=items, total=total)
+    # После локализации у модели нет полей title/content/name — только
+    # _ru/_en, поэтому ответ собираем через _article_out (как в ленте
+    # статей, см. routers/articles.py), а не отдаём ORM-объекты напрямую.
+    return ArticleListOut(items=[_article_out(a, lang) for a in items], total=total)
 
 
 @router.get("/count", response_model=dict)
