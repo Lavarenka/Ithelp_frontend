@@ -5,14 +5,33 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:80
 
 const TOKEN_STORAGE_KEY = "it_hlp_token";
 
+// detail обычно строка, но некоторые эндпоинты (например создание
+// комментария без подтверждённого email — см. routers/comments.py,
+// код "email_not_verified") отдают структурированный
+// {"detail": {"code": "...", "detail": "..."}}, как и /auth/login,
+// /auth/register (см. AuthContext.jsx: extractErrorMessage там же
+// разбирает оба варианта). Возвращаем текст и code, чтобы вызывающий
+// код мог среагировать на конкретный код ошибки, а не только показать текст.
 async function extractErrorMessage(response, fallback) {
   try {
     const data = await response.json();
-    if (typeof data.detail === "string") return data.detail;
+    if (typeof data.detail === "string") return { message: data.detail, code: null };
+    if (data.detail && typeof data.detail === "object") {
+      return {
+        message: typeof data.detail.detail === "string" ? data.detail.detail : fallback,
+        code: typeof data.detail.code === "string" ? data.detail.code : null,
+      };
+    }
   } catch {
     // тело не JSON — используем запасной текст
   }
-  return fallback;
+  return { message: fallback, code: null };
+}
+
+function apiError(message, code) {
+  const err = new Error(message);
+  if (code) err.code = code;
+  return err;
 }
 
 // Добавляет ?lang=/&lang= с текущим языком интерфейса (i18n.language) к пути
@@ -94,9 +113,11 @@ export async function apiRequest(path, { method = "GET", body, ...rest } = {}) {
   });
 
   if (!response.ok) {
-    throw new Error(
-      await extractErrorMessage(response, i18n.t("common.requestError", { status: response.status }))
+    const { message, code } = await extractErrorMessage(
+      response,
+      i18n.t("common.requestError", { status: response.status })
     );
+    throw apiError(message, code);
   }
 
   if (response.status === 204) return null;

@@ -45,11 +45,17 @@ function formatDate(isoString, locale) {
 
 export default function ProfilePage() {
   const { t, i18n } = useTranslation();
-  const { user, isAuthenticated, isLoading, updateProfile } = useAuth();
+  const { user, isAuthenticated, isLoading, updateProfile, changePassword, refreshUser } = useAuth();
 
   const [username, setUsername] = useState(user?.username ?? "");
   const [usernameState, setUsernameState] = useState("idle"); // idle | saving | saved | error
   const [usernameError, setUsernameError] = useState("");
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+  const [passwordState, setPasswordState] = useState("idle"); // idle | saving | saved | error
+  const [passwordError, setPasswordError] = useState("");
 
   // user изначально null (см. AuthContext: /auth/me ещё не ответил), поэтому
   // useState-инициализатор выше на первом рендере всегда получает "" — сама
@@ -111,6 +117,36 @@ export default function ProfilePage() {
     } catch (err) {
       setUsernameState("error");
       setUsernameError(err.message || t("auth.genericError"));
+    }
+  };
+
+  // Смена пароля (или первичная установка — у OAuth-only пользователей
+  // user.has_password === false, см. UserOut на бэкенде). currentPassword
+  // не проверяется на клиенте, если поле не показывается вовсе — бэкенд
+  // сам решает, обязателен ли он (PATCH /auth/me/password).
+  const handlePasswordSubmit = async (event) => {
+    event.preventDefault();
+    if (newPassword !== newPasswordConfirm) {
+      setPasswordState("error");
+      setPasswordError(t("auth.passwordMismatch"));
+      return;
+    }
+
+    setPasswordState("saving");
+    setPasswordError("");
+    try {
+      await changePassword(user.has_password ? currentPassword : null, newPassword, newPasswordConfirm);
+      setPasswordState("saved");
+      setCurrentPassword("");
+      setNewPassword("");
+      setNewPasswordConfirm("");
+      // has_password мог смениться false -> true (OAuth-only пользователь
+      // только что впервые задал пароль) — перечитываем /auth/me, чтобы
+      // форма сразу переключилась в обычный режим "текущий/новый пароль".
+      refreshUser();
+    } catch (err) {
+      setPasswordState("error");
+      setPasswordError(err.message || t("auth.genericError"));
     }
   };
 
@@ -280,34 +316,81 @@ export default function ProfilePage() {
               </form>
             </section>
 
-            {/* --- Смена пароля (заглушка) --- */}
+            {/* --- Смена пароля --- */}
             <section className="profile-page_section">
               <h2 className="profile-page_section-title">
-                {t("profile.passwordTitle")}{" "}
-                <span className="profile-page_badge profile-page_badge--soon">{t("profile.comingSoon")}</span>
+                {user.has_password ? t("profile.passwordTitle") : t("profile.setPasswordTitle")}
               </h2>
-              <form className="profile-page_form" onSubmit={(e) => e.preventDefault()}>
-                <input
-                  type="password"
-                  className="form-control mb-2"
-                  placeholder={t("profile.currentPassword")}
-                  disabled
-                />
+              {!user.has_password && (
+                <p className="profile-page_hint">{t("profile.setPasswordHint")}</p>
+              )}
+              <form className="profile-page_form" onSubmit={handlePasswordSubmit}>
+                {user.has_password && (
+                  <input
+                    type="password"
+                    className="form-control mb-2"
+                    placeholder={t("profile.currentPassword")}
+                    value={currentPassword}
+                    onChange={(e) => {
+                      setCurrentPassword(e.target.value);
+                      setPasswordState("idle");
+                    }}
+                    autoComplete="current-password"
+                    required
+                  />
+                )}
                 <input
                   type="password"
                   className="form-control mb-2"
                   placeholder={t("profile.newPassword")}
-                  disabled
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    setPasswordState("idle");
+                  }}
+                  minLength={6}
+                  maxLength={128}
+                  autoComplete="new-password"
+                  required
                 />
                 <input
                   type="password"
                   className="form-control mb-2"
-                  placeholder={t("auth.passwordConfirm")}
-                  disabled
+                  placeholder={t("profile.newPasswordConfirm")}
+                  value={newPasswordConfirm}
+                  onChange={(e) => {
+                    setNewPasswordConfirm(e.target.value);
+                    setPasswordState("idle");
+                  }}
+                  minLength={6}
+                  maxLength={128}
+                  autoComplete="new-password"
+                  required
                 />
-                <button type="submit" className="btn btn-primary btn-sm" disabled>
-                  {t("common.save")}
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-sm"
+                  disabled={
+                    passwordState === "saving" ||
+                    !newPassword ||
+                    !newPasswordConfirm ||
+                    (user.has_password && !currentPassword)
+                  }
+                >
+                  {passwordState === "saving"
+                    ? t("common.saving")
+                    : user.has_password
+                    ? t("common.save")
+                    : t("profile.passwordSetAction")}
                 </button>
+                {passwordState === "saved" && (
+                  <p className="profile-page_status profile-page_status--ok">
+                    {user.has_password ? t("profile.passwordSaved") : t("profile.passwordSet")}
+                  </p>
+                )}
+                {passwordState === "error" && (
+                  <p className="profile-page_status profile-page_status--error">{passwordError}</p>
+                )}
               </form>
             </section>
 

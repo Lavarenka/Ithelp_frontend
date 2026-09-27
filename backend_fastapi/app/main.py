@@ -5,11 +5,112 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import articles, tags, auth, users, favorites, comments, sitemap
+from app.routers import articles, tags, auth, users, favorites, comments, sitemap, oauth
+
+
+def _ensure_comments_user_id_nullable() -> None:
+    """comments.user_id раньше был NOT NULL (см. models/comment.py — теперь
+    там int | None) — при удалении пользователя (routers/users.py:
+    delete_user) мы хотим ОБНУЛЯТЬ user_id у его комментариев, а не удалять
+    сами комментарии (чтобы не рвать нить обсуждения под статьёй, автор
+    просто становится "Удалённый пользователь" — см. _comment_out в
+    routers/comments.py). На уже существующей базе физическая колонка
+    остаётся NOT NULL, даже если модель поменяли — Base.metadata.create_all()
+    ниже создаёт только ОТСУТСТВУЮЩИЕ таблицы, не меняет схему уже
+    существующих. SQLite не умеет ALTER COLUMN ... DROP NOT NULL напрямую,
+    поэтому пересоздаём таблицу целиком (стандартный приём для SQLite:
+    новая таблица с нужной схемой -> копируем данные -> удаляем старую ->
+    переименовываем) и переносим существующие данные без потерь. Должно
+    выполняться ДО Base.metadata.create_all() ниже, пока таблицы comments
+    с новой схемой ещё не существует."""
+    inspector = inspect(engine)
+    if "comments" not in inspector.get_table_names():
+        return  # таблицы ещё нет — create_all ниже создаст её сразу с nullable=True
+    columns = {col["name"]: col for col in inspector.get_columns("comments")}
+    if columns.get("user_id", {}).get("nullable"):
+        return  # уже nullable — миграция не нужна (или уже была применена раньше)
+
+    # ВАЖНО: PRAGMA foreign_keys включена глобально на каждом соединении
+    # (см. database.py) — значит DROP TABLE comments ниже каскадно удалит
+    # comment_votes.comment_id (ondelete="CASCADE" в models/comment.py),
+    # причём это происходит НЕЗАВИСИМО от того, что мы уже скопировали
+    # данные в comments_new: голоса привязаны к id старой таблицы, и её
+    # удаление стирает их прежде, чем мы успеваем что-то с ними сделать.
+    # Раньше это привело к молчаливой потере реального (не "осиротевшего")
+    # голоса при первом прогоне миграции на копии продовой базы. Поэтому
+    # именно для этой миграции временно отключаем проверку внешних ключей
+    # на соединении — данные внутри транзакции всё равно консистентны
+    # (мы сами это гарантируем через LEFT JOIN ниже), просто не хотим,
+    # чтобы движок каскадно тронул comment_votes при пересборке comments.
+    with engine.begin() as conn:
+        conn.execute(text("PRAGMA foreign_keys=OFF"))
+        conn.execute(text("""
+            CREATE TABLE comments_new (
+                id INTEGER NOT NULL PRIMARY KEY,
+                article_id INTEGER NOT NULL,
+                user_id INTEGER,
+                text TEXT NOT NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                created_at DATETIME NOT NULL,
+                FOREIGN KEY(article_id) REFERENCES articles (id) ON DELETE CASCADE,
+                FOREIGN KEY(user_id) REFERENCES users (id) ON DELETE SET NULL
+            )
+        """))
+        # LEFT JOIN на users: если user_id ссылается на уже удалённого
+        # пользователя (это как раз штатный случай, из-за которого эта
+        # миграция вообще нужна — раньше delete_user не мог обнулить
+        # user_id, потому что колонка была NOT NULL, и такие "осиротевшие"
+        # строки уже могли накопиться в базе) — переносим строку с user_id
+        # = NULL вместо битого user_id, а не оставляем его как есть.
+        conn.execute(text("""
+            INSERT INTO comments_new (id, article_id, user_id, text, status, created_at)
+            SELECT c.id, c.article_id,
+                   CASE WHEN u.id IS NULL THEN NULL ELSE c.user_id END,
+                   c.text, c.status, c.created_at
+            FROM comments c
+            LEFT JOIN users u ON u.id = c.user_id
+        """))
+        conn.execute(text("DROP TABLE comments"))
+        conn.execute(text("ALTER TABLE comments_new RENAME TO comments"))
+        # Индекс на article_id — как в исходной модели (index=True в
+        # models/comment.py), пересоздание таблицы его не сохраняет само.
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comments_article_id ON comments (article_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comments_status ON comments (status)"))
+        conn.execute(text("PRAGMA foreign_keys=ON"))
+
+
+def _cleanup_orphaned_user_references() -> None:
+    """Разовая уборка "хвостов" от пользователей, которые были удалены ДО
+    того, как delete_user (routers/users.py) научился сам их подчищать, и
+    ДО того, как PRAGMA foreign_keys=ON (database.py) начала реально
+    работать в SQLite. Раньше при удалении пользователя оставались строки
+    в comment_votes/favorites, ссылающиеся на уже несуществующего
+    user_id — это чисто исторический мусор, безопасно удаляемый (голос
+    лайк/дизлайк и запись "избранное" бессмысленны без самого пользователя).
+    Комментарии здесь НЕ трогаем — им отдельная миграция выше уже
+    проставила user_id=NULL, сам текст комментария сохраняется."""
+    inspector = inspect(engine)
+    tables = set(inspector.get_table_names())
+    with engine.begin() as conn:
+        if "comment_votes" in tables:
+            conn.execute(text("""
+                DELETE FROM comment_votes
+                WHERE user_id NOT IN (SELECT id FROM users)
+            """))
+        if "favorites" in tables:
+            conn.execute(text("""
+                DELETE FROM favorites
+                WHERE user_id NOT IN (SELECT id FROM users)
+            """))
+
+
+_ensure_comments_user_id_nullable()
 
 # Пока без Alembic-миграций: на старте создаём таблицы, если их ещё нет.
 # Когда бэкенд обрастёт другими моделями — заменить на alembic upgrade head.
 Base.metadata.create_all(bind=engine)
+
+_cleanup_orphaned_user_references()
 
 
 def _ensure_users_email_verified_column() -> None:
@@ -135,6 +236,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(oauth.router)
 app.include_router(articles.router)
 app.include_router(tags.router)
 app.include_router(users.router)

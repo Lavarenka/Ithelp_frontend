@@ -52,6 +52,11 @@ class UserOut(BaseModel):
     email_verified: bool
     avatar: str | None = None
     created_at: datetime
+    # Есть ли у пользователя пароль (см. User.has_password в models/user.py) —
+    # False у тех, кто зарегистрировался только через Google/GitHub. Страница
+    # профиля использует это, чтобы показать форму "задать пароль" вместо
+    # обычной "сменить пароль" (без поля "текущий пароль").
+    has_password: bool = True
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -125,3 +130,25 @@ class UserActiveUpdate(BaseModel):
 class EmailVerifyOut(BaseModel):
     message: str
     already_verified: bool = False
+
+
+class PasswordChangeIn(BaseModel):
+    """PATCH /auth/me/password. current_password обязателен, только если у
+    пользователя уже есть пароль (see UserOut.has_password) — роутер это
+    проверяет сам (схема не знает про текущего пользователя), тут просто
+    делаем поле опциональным, чтобы OAuth-only пользователь мог ВПЕРВЫЕ
+    задать пароль, ничего не подтверждая."""
+
+    current_password: str | None = Field(default=None, min_length=1, max_length=128)
+    new_password: str = Field(min_length=6, max_length=128)
+    new_password_confirm: str = Field(min_length=1, max_length=128)
+
+    @model_validator(mode="after")
+    def passwords_match(self) -> "PasswordChangeIn":
+        if self.new_password != self.new_password_confirm:
+            raise ValueError("Пароли не совпадают")
+        return self
+
+
+class PasswordChangeOut(BaseModel):
+    message: str

@@ -15,6 +15,8 @@ from app.schemas.user import (
     UserProfileUpdate,
     TokenOut,
     EmailVerifyOut,
+    PasswordChangeIn,
+    PasswordChangeOut,
 )
 from app.security import (
     hash_password,
@@ -137,8 +139,8 @@ def update_me(
     db: Session = Depends(get_db),
 ):
     """Самостоятельное редактирование профиля — страница "Профиль" на
-    фронтенде. Пароль тут не меняется (в этой версии там только заглушка
-    "скоро" — см. ProfilePage), только username и/или avatar."""
+    фронтенде: username и/или avatar. Смена пароля — отдельный эндпоинт,
+    см. change_password ниже (PATCH /auth/me/password)."""
     if payload.username is not None and payload.username != current_user.username:
         taken = db.execute(
             select(User).where(User.username == payload.username, User.id != current_user.id)
@@ -203,3 +205,35 @@ def resend_verification(
         _dispatch_verification_email, current_user.id, current_user.email, current_user.username
     )
     return EmailVerifyOut(message="Письмо с подтверждением отправлено")
+
+
+@router.patch("/me/password", response_model=PasswordChangeOut)
+def change_password(
+    payload: PasswordChangeIn,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Смена пароля на странице профиля. Если у пользователя ещё нет пароля
+    (зарегистрирован только через Google/GitHub — hashed_password == "",
+    см. models/user.py и app/routers/oauth.py), current_password не
+    требуется: он просто ЗАДАЁТ пароль впервые. Если пароль уже есть —
+    current_password обязателен и должен совпасть, иначе 400."""
+    if current_user.hashed_password:
+        if not payload.current_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Укажите текущий пароль",
+            )
+        if not verify_password(payload.current_password, current_user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Текущий пароль указан неверно",
+            )
+
+    had_password_before = bool(current_user.hashed_password)
+    current_user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+
+    return PasswordChangeOut(
+        message="Пароль успешно обновлён" if had_password_before else "Пароль установлен"
+    )

@@ -316,3 +316,10 @@
     background: #f1dede;
     color: #a83232;
 }
+
+/* Автор комментария был удалён из системы (см. CommentAuthorOut.is_deleted
+   на бэкенде) — приглушённый курсив вместо обычного имени в таблице модерации. */
+.admin-comments_author--deleted {
+    font-style: italic;
+    color: #999;
+}

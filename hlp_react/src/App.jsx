@@ -13,6 +13,7 @@ import FavoritesPage from "./components/FavoritesPage/FavoritesPage";
 import VerifyEmailPage from "./components/VerifyEmailPage/VerifyEmailPage";
 import ProfilePage from "./components/ProfilePage/ProfilePage";
 import AboutPage from "./components/AboutPage/AboutPage";
+import OAuthCallbackPage from "./components/OAuthCallbackPage/OAuthCallbackPage";
 import CookieBanner from "./components/CookieBanner/CookieBanner";
 import EmailVerifyBanner from "./components/EmailVerifyBanner/EmailVerifyBanner";
 import { waitForPendingRequests } from "./api";
@@ -115,6 +116,7 @@ function App() {
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/about" element={<AboutPage />} />
+                <Route path="/auth/callback" element={<OAuthCallbackPage />} />
               </Routes>
               <Sitebar />
             </div>

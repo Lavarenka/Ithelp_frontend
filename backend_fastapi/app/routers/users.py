@@ -1,12 +1,12 @@
 """Управление пользователями — доступно только администраторам (см. require_admin)."""
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update, delete
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.deps import require_admin
-from app.models import User
+from app.models import User, Comment, CommentVote, Favorite
 from app.schemas import UserAdminOut, UserListOut, UserRoleUpdate, UserActiveUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -77,6 +77,18 @@ def delete_user(
     user = db.get(User, user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
+
+    # Явно чистим ссылки на пользователя перед удалением — не полагаемся
+    # только на ondelete в моделях (PRAGMA foreign_keys=ON включена в
+    # database.py и теперь тоже это обеспечивает, но явный код здесь
+    # надёжнее и не завязан на то, включена ли PRAGMA у конкретной БД).
+    # Комментарии ОСТАЮТСЯ на сайте — просто теряют автора (author станет
+    # "Удалённый пользователь", см. _comment_out в routers/comments.py),
+    # чтобы не рвать нить обсуждения под статьёй. Голоса лайк/дизлайк
+    # удалённого пользователя удаляем полностью — они бессмысленны без него.
+    db.execute(update(Comment).where(Comment.user_id == user_id).values(user_id=None))
+    db.execute(delete(CommentVote).where(CommentVote.user_id == user_id))
+    db.execute(delete(Favorite).where(Favorite.user_id == user_id))
 
     db.delete(user)
     db.commit()

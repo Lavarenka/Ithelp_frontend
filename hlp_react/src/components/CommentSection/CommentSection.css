@@ -21,6 +21,38 @@
     margin-bottom: 1.5rem;
 }
 
+/* Блок для авторизованного, но ещё не подтвердившего email пользователя —
+   тот же стиль "мягкого" предупреждения, что и у баннера EmailVerifyBanner
+   (жёлтый оттенок), но локально внутри секции комментариев. */
+.comment-section_verify-notice {
+    background: #fff8e1;
+    border: 1px solid #f0d878;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: #8a6d1a;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.comment-section_verify-notice p {
+    margin: 0;
+    flex: 1 1 auto;
+    min-width: 200px;
+}
+
+.comment-section_verify-sent {
+    color: #2e7d32;
+    font-size: 0.9rem;
+}
+
+.comment-section_verify-error {
+    color: #c0392b;
+    font-size: 0.9rem;
+}
+
 .comment-section_state {
     color: #888;
 }
@@ -97,6 +129,14 @@
 .comment-item_author {
     font-weight: 600;
     color: var(--title-color, #212020);
+}
+
+/* Комментарий, чей автор был удалён из системы (см. CommentAuthorOut.is_deleted
+   на бэкенде) — показываем приглушённым курсивом вместо обычного жирного имени. */
+.comment-item_author--deleted {
+    font-weight: 400;
+    font-style: italic;
+    color: #999;
 }
 
 .comment-item_date {

@@ -51,6 +51,18 @@ class Settings(BaseSettings):
     # Секретный ключ — только на бэкенде, на фронтенд не попадает никогда.
     recaptcha_secret_key: str = GOOGLE_RECAPTCHA_TEST_SECRET_KEY
 
+    # --- Вход через Google / GitHub (см. app/routers/oauth.py) ---
+    # Адрес самого бэкенда снаружи — из него собираются адреса возврата
+    # (redirect URI) вида {backend_base_url}/auth/oauth/google/callback. Они
+    # должны В ТОЧНОСТИ совпадать с тем, что указано в настройках приложения
+    # у Google/GitHub, иначе те откажут с redirect_uri_mismatch.
+    backend_base_url: str = "http://localhost:8000"
+    # Пусто — провайдер выключен: кнопки входа через него на сайте не появятся.
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    github_client_id: str = ""
+    github_client_secret: str = ""
+
     model_config = SettingsConfigDict(env_file=".env", env_prefix="", case_sensitive=False)
 
     @field_validator("recaptcha_secret_key")

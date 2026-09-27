@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import ReCaptcha from "../ReCaptcha/ReCaptcha";
+import OAuthButtons from "./OAuthButtons";
 import "./AuthModal.css";
 
 // Модалка авторизации/регистрации на кнопке-ключике в шапке (см. HeaderSection.jsx,
@@ -207,6 +208,8 @@ export default function AuthModal() {
                 {isSubmitting ? t("auth.submitWait") : mode === "login" ? t("auth.submitLogin") : t("auth.submitRegister")}
               </button>
             </form>
+
+            <OAuthButtons />
 
             <p className="auth-modal_switch mb-0">
               {mode === "login" ? (

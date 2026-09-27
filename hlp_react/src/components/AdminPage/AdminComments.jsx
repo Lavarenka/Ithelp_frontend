@@ -179,7 +179,9 @@ export default function AdminComments() {
                     className={comment.status === "pending" ? "admin-table_row--pending" : ""}
                   >
                     <td className="admin-table_title">{comment.article.title}</td>
-                    <td>{comment.author.username}</td>
+                    <td className={comment.author.is_deleted ? "admin-comments_author--deleted" : ""}>
+                      {comment.author.is_deleted ? t("comments.deletedUser") : comment.author.username}
+                    </td>
                     <td className="admin-comments_text">{comment.text}</td>
                     <td>{formatDate(comment.created_at, i18n.language)}</td>
                     <td>

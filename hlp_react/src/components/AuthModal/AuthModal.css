@@ -62,3 +62,51 @@
     cursor: pointer;
     font-size: 14px;
 }
+
+/* --- Вход через Google / GitHub (см. OAuthButtons.jsx) --- */
+.auth-modal_oauth {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.auth-modal_oauth-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.auth-modal_oauth-divider::before,
+.auth-modal_oauth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.auth-modal_oauth-btn {
+    width: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    background: #fff;
+    color: #212020;
+}
+
+.auth-modal_oauth-btn:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
+.auth-modal_oauth-btn--github {
+    background: #24292f;
+    border-color: #24292f;
+    color: #fff;
+}
+
+.auth-modal_oauth-btn--github:hover {
+    background: #32383f;
+    border-color: #32383f;
+    color: #fff;
+}

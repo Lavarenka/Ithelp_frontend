@@ -69,7 +69,9 @@
   "articlePage": {
     "notFound": "Article not found",
     "loading": "Loading article…",
-    "views": "Views: {{count}}"
+    "views": "Views: {{count}}",
+    "readingTime": "{{minutes}} min read",
+    "linkCopied": "Link copied"
   },
   "tagPage": {
     "title": "Articles tagged: {{tag}}",
@@ -92,6 +94,8 @@
     "submitting": "Posting…",
     "pendingNotice": "Your comment has been sent and is awaiting moderator review. It will appear here once published.",
     "guestNotice": "Log in to leave a comment.",
+    "verifyRequired": "Confirm your email to leave comments.",
+    "deletedUser": "Deleted user",
     "loading": "Loading comments…",
     "empty": "No comments yet — be the first!"
   },
@@ -115,6 +119,18 @@
     "captchaRequired": "Please tick “I'm not a robot”",
     "captchaNowRequired": "Too many failed attempts — please confirm the captcha and try again",
     "captchaLoadFailed": "Couldn't load the captcha — click to retry",
+    "orContinueWith": "or",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithGithub": "Continue with GitHub",
+    "oauthSigningIn": "Signing you in…",
+    "oauthErrors": {
+      "oauth_cancelled": "Sign-in was cancelled.",
+      "oauth_state_mismatch": "The sign-in link has expired or was opened in another browser — please try again.",
+      "oauth_failed": "Couldn't sign you in — please try again a bit later.",
+      "oauth_no_email": "This account has no verified email — verify it in Google/GitHub or sign up with email.",
+      "oauth_blocked": "This account is blocked.",
+      "oauth_not_configured": "This sign-in method is not available right now."
+    },
     "emailVerifyBannerText": "Please confirm your email ({{email}}) — check your inbox for a link from us.",
     "emailVerifyResend": "Resend email",
     "emailVerifyResending": "Sending…",
@@ -165,9 +181,15 @@
     "usernameTitle": "Username",
     "usernameSaved": "Username updated.",
     "passwordTitle": "Password",
-    "comingSoon": "coming soon",
+    "setPasswordTitle": "Set a password",
     "currentPassword": "Current password",
     "newPassword": "New password",
+    "newPasswordConfirm": "Repeat new password",
+    "setPasswordHint": "You signed in with Google/GitHub — set a password so you can also log in with your username and password.",
+    "passwordSaved": "Password updated.",
+    "passwordSet": "Password set.",
+    "passwordWrongCurrent": "Current password is incorrect",
+    "passwordSetAction": "Set password",
     "accountInfoTitle": "Account",
     "emailVerified": "verified",
     "emailUnverified": "not verified",

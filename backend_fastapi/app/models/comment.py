@@ -20,7 +20,16 @@ class Comment(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     article_id: Mapped[int] = mapped_column(ForeignKey("articles.id", ondelete="CASCADE"), nullable=False, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    # NULL — автор комментария удалён (см. routers/users.py: delete_user
+    # явно проставляет NULL сюда перед удалением пользователя, а не
+    # полагается на ondelete="CASCADE" ниже — SQLite по умолчанию не
+    # соблюдает ON DELETE CASCADE, поэтому раньше комментарии оставались
+    # висеть с user_id, указывающим на уже удалённого пользователя, и
+    # список комментариев падал с ValidationError на CommentOut.author).
+    # Сам комментарий при этом НЕ удаляется — остаётся виден с автором
+    # "Удалённый пользователь" (см. _comment_out в routers/comments.py),
+    # чтобы не рвать нить обсуждения под статьёй.
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="pending", nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -28,7 +37,7 @@ class Comment(Base):
     )
 
     article: Mapped["Article"] = relationship("Article")
-    author: Mapped["User"] = relationship("User")
+    author: Mapped["User | None"] = relationship("User")
     votes: Mapped[list["CommentVote"]] = relationship(
         "CommentVote", back_populates="comment", cascade="all, delete-orphan"
     )

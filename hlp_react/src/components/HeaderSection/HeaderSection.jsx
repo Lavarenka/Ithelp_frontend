@@ -9,8 +9,18 @@ import SearchModal from "../SearchModal/SearchModal";
 import Avatar from "../Avatar/Avatar";
 import { useAuth } from "../../context/AuthContext";
 import { useFavorites } from "../../context/FavoritesContext";
+import Sitebar from "../SitebarSection/SitebarSection";
 
-const COMPACT_SCROLL_THRESHOLD = 40;
+// Раньше был один порог (scrollY > 40) — если остановиться прокруткой ровно
+// на этом пикселе, любое микро-дрожание колеса/тачпада (или даже инерция
+// после отпускания) даёт scrollY то 39, то 41, и isCompact на каждое scroll-
+// событие переключается туда-обратно, из-за чего CSS-переход (padding/
+// font-size в Header.css) без конца дёргается назад-вперёд — то самое
+// "шапка трясётся". Лечится гистерезисом: включаем компактный режим только
+// после ON, выключаем только после спуска ниже OFF, а между ними (зона
+// 30–60px) шапка остаётся в том состоянии, в котором уже была.
+const COMPACT_SCROLL_THRESHOLD_ON = 60;
+const COMPACT_SCROLL_THRESHOLD_OFF = 30;
 
 // Один пункт меню: тег с (опционально) вложенными подтегами.
 // Клик по самому тегу — это ссылка на /tags/:slug (родительский тег покажет
@@ -85,8 +95,24 @@ export default function Header({ isEn, onToggleLanguage }) {
   const { count: favoritesCount } = useFavorites();
 
   useEffect(() => {
+    // Функциональный setState — сравниваем не с одним порогом, а с тем, в
+    // каком режиме шапка уже была (гистерезис, см. комментарий у констант
+    // выше). requestAnimationFrame гасит лишние вызовы, если браузер успел
+    // выстрелить несколько "scroll"-событий за один кадр (частый случай при
+    // инерционной прокрутке тачпадом) — реагируем не чаще раза за кадр.
+    let ticking = false;
+
     const handleScroll = () => {
-      setIsCompact(window.scrollY > COMPACT_SCROLL_THRESHOLD);
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setIsCompact((prev) =>
+          prev
+            ? window.scrollY > COMPACT_SCROLL_THRESHOLD_OFF
+            : window.scrollY > COMPACT_SCROLL_THRESHOLD_ON
+        );
+        ticking = false;
+      });
     };
 
     handleScroll();
@@ -159,6 +185,24 @@ export default function Header({ isEn, onToggleLanguage }) {
                                           <TagMenuItem key={tag.id} tag={tag} />
                                         ))}
                                     </ul>
+                                    {/* Ниже пунктов меню раньше был просто пустой тёмный экран во всю
+                                        высоту (offcanvas-body у Bootstrap растягивается на весь offcanvas,
+                                        а пунктов мало) — сайдбар (реклама + "Популярные статьи") на узких
+                                        экранах (<992px, см. .layout_sidebar в index.css) в это время пропадал
+                                        целиком. Дублируем его содержимое сюда, в бургер-меню, вместо пустоты.
+                                        .offcanvas_sidebar в Header.css отменяет display:none у .layout_sidebar
+                                        и перекрашивает текст под тёмный фон офканваса (см. комментарий там же).
+                                        d-lg-none обязателен: этот же .offcanvas вложен в .navbar-expand-lg, а у
+                                        Bootstrap для такой связки есть спецправило (см. bootstrap.min.css) — на
+                                        экранах ≥992px offcanvas перестаёт быть "выезжающей шторкой" и просто
+                                        встраивается в шапку как обычное горизонтальное меню (offcanvas-header
+                                        прячется, offcanvas-body становится flex-строкой). Без d-lg-none наш
+                                        блок сайдбара так же "распрямлялся" бы и торчал прямо в десктопной шапке
+                                        поверх остального контента — было ровно так на скриншоте у пользователя. */}
+                                    <hr className="offcanvas_sidebar_divider d-lg-none" />
+                                    <div className="offcanvas_sidebar d-lg-none">
+                                        <Sitebar />
+                                    </div>
                                 </div>
 
 

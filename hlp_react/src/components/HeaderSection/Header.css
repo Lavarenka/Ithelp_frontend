@@ -312,3 +312,42 @@
   width: 100%;
   transition-duration: .2s;
 }
+/* --- Сайдбар (реклама + "Популярные статьи"), продублированный в бургер-меню
+   на узких экранах — см. HeaderSection.jsx, .offcanvas_sidebar. Сам компонент
+   Sitebar (SitebarSection.jsx) рассчитан на светлый фон основной страницы,
+   а тут он внутри тёмного offcanvas (data-bs-theme="dark" на <nav>), поэтому
+   часть его цветов (заданных явно, не через тему Bootstrap) нужно
+   перекрасить под тёмный фон — тот же приём, что уже используется для
+   аватарки в шапке (см. Avatar.css, .avatar--on-dark). */
+.offcanvas_sidebar_divider {
+    margin: 1rem 0;
+}
+
+.offcanvas_sidebar {
+    margin-bottom: 0.5rem;
+}
+
+.offcanvas_sidebar .sitebar {
+    padding-top: 0;
+}
+
+/* .layout_sidebar по умолчанию display:none ниже 992px (см. index.css) —
+   офканвас открывается только ниже этого же брейкпоинта (у Bootstrap
+   navbar-toggler виден только до lg), так что здесь его нужно всегда
+   показывать, без привязки к ширине экрана. */
+.offcanvas_sidebar .layout_sidebar {
+    display: block;
+}
+
+.offcanvas_sidebar .advertising {
+    border-color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.offcanvas_sidebar .star_item_h2 a {
+    color: #fff;
+}
+
+.offcanvas_sidebar .star_icons {
+    color: rgba(255, 255, 255, 0.55);
+}

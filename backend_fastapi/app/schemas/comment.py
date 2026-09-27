@@ -11,6 +11,10 @@ class CommentAuthorOut(BaseModel):
     id: int
     username: str
     avatar: str | None = None
+    # True — это не настоящий пользователь, а заглушка "Удалённый
+    # пользователь" (см. CommentOut.author выше и _comment_out в
+    # routers/comments.py). id в этом случае фиктивный (0).
+    is_deleted: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -25,6 +29,12 @@ class CommentOut(BaseModel):
     text: str
     status: str
     created_at: datetime
+    # None — автор удалён (см. Comment.user_id в models/comment.py: SET NULL
+    # при удалении пользователя). Роутер (routers/comments.py: _comment_out)
+    # в этом случае не оставляет None как есть, а сам подставляет "виртуального"
+    # автора is_deleted=True с именем "Удалённый пользователь" — так фронтенду
+    # не нужно отдельно проверять author на null в каждом месте, где он
+    # показывается (просто читает username/is_deleted как обычно).
     author: CommentAuthorOut
 
     # Не читаются напрямую из модели — роутер проставляет вручную после

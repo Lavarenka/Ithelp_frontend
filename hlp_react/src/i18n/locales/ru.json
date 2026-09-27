@@ -69,7 +69,9 @@
   "articlePage": {
     "notFound": "Статья не найдена",
     "loading": "Загрузка статьи…",
-    "views": "Просмотров: {{count}}"
+    "views": "Просмотров: {{count}}",
+    "readingTime": "{{minutes}} мин чтения",
+    "linkCopied": "Ссылка скопирована"
   },
   "tagPage": {
     "title": "Статьи по тегу: {{tag}}",
@@ -92,6 +94,8 @@
     "submitting": "Отправка…",
     "pendingNotice": "Комментарий отправлен и ожидает проверки модератором. Он появится здесь после публикации.",
     "guestNotice": "Войдите, чтобы оставить комментарий.",
+    "verifyRequired": "Подтвердите email, чтобы оставлять комментарии.",
+    "deletedUser": "Удалённый пользователь",
     "loading": "Загрузка комментариев…",
     "empty": "Пока нет комментариев — будьте первым!"
   },
@@ -115,6 +119,18 @@
     "captchaRequired": "Отметьте «Я не робот»",
     "captchaNowRequired": "Слишком много неудачных попыток — подтвердите капчу и попробуйте снова",
     "captchaLoadFailed": "Не удалось загрузить капчу — нажмите, чтобы повторить",
+    "orContinueWith": "или",
+    "continueWithGoogle": "Войти через Google",
+    "continueWithGithub": "Войти через GitHub",
+    "oauthSigningIn": "Входим…",
+    "oauthErrors": {
+      "oauth_cancelled": "Вход отменён.",
+      "oauth_state_mismatch": "Ссылка входа устарела или открыта в другом браузере — попробуйте войти ещё раз.",
+      "oauth_failed": "Не удалось войти — попробуйте ещё раз чуть позже.",
+      "oauth_no_email": "У аккаунта нет подтверждённого email — подтвердите почту в Google/GitHub или зарегистрируйтесь по email.",
+      "oauth_blocked": "Аккаунт заблокирован.",
+      "oauth_not_configured": "Этот способ входа сейчас недоступен."
+    },
     "emailVerifyBannerText": "Подтвердите ваш email ({{email}}) — проверьте почту, мы отправили туда письмо со ссылкой.",
     "emailVerifyResend": "Отправить письмо ещё раз",
     "emailVerifyResending": "Отправка…",
@@ -165,9 +181,15 @@
     "usernameTitle": "Имя пользователя",
     "usernameSaved": "Имя пользователя обновлено.",
     "passwordTitle": "Пароль",
-    "comingSoon": "скоро",
+    "setPasswordTitle": "Установить пароль",
     "currentPassword": "Текущий пароль",
     "newPassword": "Новый пароль",
+    "newPasswordConfirm": "Повторите новый пароль",
+    "setPasswordHint": "Вы вошли через Google/GitHub — задайте пароль, чтобы иметь возможность входить и по логину/паролю.",
+    "passwordSaved": "Пароль успешно обновлён.",
+    "passwordSet": "Пароль установлен.",
+    "passwordWrongCurrent": "Текущий пароль указан неверно",
+    "passwordSetAction": "Установить",
     "accountInfoTitle": "Аккаунт",
     "emailVerified": "подтверждён",
     "emailUnverified": "не подтверждён",

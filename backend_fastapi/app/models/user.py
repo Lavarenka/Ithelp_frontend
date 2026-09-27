@@ -13,6 +13,9 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String(50), nullable=False, unique=True, index=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    # Пустая строка — у пользователя нет пароля: он зарегистрировался через
+    # Google/GitHub (см. app/routers/oauth.py) и входит только так. NULL не
+    # используем, чтобы не менять NOT NULL у колонки в уже существующих базах.
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     # "admin" может создавать/редактировать статьи и теги, "user" — только читать.
     role: Mapped[str] = mapped_column(String(20), default="user", nullable=False)
@@ -33,3 +36,18 @@ class User(Base):
     favorites: Mapped[list["Favorite"]] = relationship(
         "Favorite", back_populates="user", cascade="all, delete-orphan"
     )
+    # cascade обязателен: SQLite по умолчанию не соблюдает ON DELETE CASCADE,
+    # и без него при удалении пользователя привязка Google/GitHub осталась бы
+    # висеть — а новый пользователь с тем же id "унаследовал" бы чужой вход.
+    oauth_accounts: Mapped[list["OAuthAccount"]] = relationship(
+        "OAuthAccount", back_populates="user", cascade="all, delete-orphan"
+    )
+
+    @property
+    def has_password(self) -> bool:
+        """True, если у пользователя реально задан пароль (не пустая строка) —
+        то есть он может входить локальным логином, а не только через
+        Google/GitHub (см. hashed_password выше и app/routers/oauth.py).
+        Используется UserOut, чтобы фронтенд (страница профиля) знал, нужно
+        ли спрашивать текущий пароль при смене/установке нового."""
+        return bool(self.hashed_password)

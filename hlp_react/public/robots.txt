@@ -4,5 +4,6 @@ Disallow: /admin
 Disallow: /profile
 Disallow: /favorites
 Disallow: /verify-email
+Disallow: /auth/
 
 Sitemap: https://it-hlp.ru/sitemap.xml

@@ -49,9 +49,25 @@ function CommentVotes({ comment, onVote, disabled }) {
   );
 }
 
-export default function CommentSection({ articleId }) {
+export default function CommentSection({ articleId, onTotalChange }) {
   const { t, i18n } = useTranslation();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, user, resendVerification } = useAuth();
+
+  // Комментировать может только пользователь с подтверждённым email (см.
+  // create_comment в routers/comments.py — 403 email_not_verified). Админа
+  // бэкенд не ограничивает, поэтому и тут ему форму не прячем.
+  const canComment = Boolean(user?.email_verified || user?.role === "admin");
+  const [resendState, setResendState] = useState("idle"); // idle | sending | sent | error
+
+  const handleResendVerification = async () => {
+    setResendState("sending");
+    try {
+      await resendVerification();
+      setResendState("sent");
+    } catch {
+      setResendState("error");
+    }
+  };
 
   const [comments, setComments] = useState([]);
   const [total, setTotal] = useState(0);
@@ -87,6 +103,13 @@ export default function CommentSection({ articleId }) {
         const data = await apiRequest(`/articles/${articleId}/comments?${params.toString()}`);
         setComments(data.items);
         setTotal(data.total);
+        // Сообщаем наверх (ArticlePage) актуальное число комментариев — там
+        // оно показывается рядом с просмотрами (иконка с числом), и раньше
+        // не обновлялось: то число приходило один раз с /articles/{id} при
+        // открытии страницы и с тех пор так и оставалось, даже когда
+        // комментарий добавляли/одобряли, хотя заголовок "Комментарии (N)"
+        // тут же, в этом компоненте, обновлялся правильно.
+        onTotalChange?.(data.total);
         if (silent) setError(null);
         // Как только отправленный нами комментарий появляется в списке
         // (значит, его одобрили) — прячем плашку "на модерации" сама собой.
@@ -102,7 +125,7 @@ export default function CommentSection({ articleId }) {
         if (!silent) setIsLoading(false);
       }
     },
-    [articleId, page]
+    [articleId, page, onTotalChange]
   );
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -190,7 +213,28 @@ export default function CommentSection({ articleId }) {
         {t("comments.title")} {total > 0 && <span className="comment-section_count">({total})</span>}
       </h3>
 
-      {!authLoading && isAuthenticated && (
+      {!authLoading && isAuthenticated && !canComment && (
+        <div className="comment-section_verify-notice">
+          <p>{t("comments.verifyRequired")}</p>
+          {resendState === "sent" ? (
+            <span className="comment-section_verify-sent">{t("auth.emailVerifyResendSent")}</span>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-dark"
+              onClick={handleResendVerification}
+              disabled={resendState === "sending"}
+            >
+              {resendState === "sending" ? t("auth.emailVerifyResending") : t("auth.emailVerifyResend")}
+            </button>
+          )}
+          {resendState === "error" && (
+            <span className="comment-section_verify-error">{t("auth.genericError")}</span>
+          )}
+        </div>
+      )}
+
+      {!authLoading && isAuthenticated && canComment && (
         <form className="comment-form" onSubmit={handleSubmit}>
           <textarea
             className="form-control comment-form_textarea"
@@ -235,8 +279,17 @@ export default function CommentSection({ articleId }) {
             {comments.map((comment) => (
               <li className="comment-item" key={comment.id}>
                 <div className="comment-item_header">
-                  <Avatar src={comment.author.avatar} alt={comment.author.username} size="sm" className="comment-item_avatar" />
-                  <span className="comment-item_author">{comment.author.username}</span>
+                  <Avatar
+                    src={comment.author.avatar}
+                    alt={comment.author.username}
+                    size="sm"
+                    className="comment-item_avatar"
+                  />
+                  <span
+                    className={`comment-item_author${comment.author.is_deleted ? " comment-item_author--deleted" : ""}`}
+                  >
+                    {comment.author.is_deleted ? t("comments.deletedUser") : comment.author.username}
+                  </span>
                   <span className="comment-item_date">{formatDate(comment.created_at, i18n.language)}</span>
                 </div>
                 <p className="comment-item_text">{comment.text}</p>

@@ -1,16 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, func
 from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.deps import get_current_user, get_current_user_optional, require_admin
 from app.models import Article, Comment, CommentVote, User
+from app.routers.tags import _pick_lang
 from app.schemas import (
     CommentCreate,
     CommentOut,
     CommentListOut,
     CommentAdminOut,
     CommentAdminListOut,
+    CommentArticleOut,
+    CommentAuthorOut,
     CommentVoteOut,
     CommentVoteIn,
     CommentStatusUpdate,
@@ -56,6 +59,57 @@ def _annotate_votes(db: Session, comments: list[Comment], current_user: User | N
         comment.my_vote = my_votes.get(comment.id)
 
 
+_DELETED_AUTHOR = CommentAuthorOut(id=0, username="Удалённый пользователь", avatar=None, is_deleted=True)
+
+
+def _comment_author_out(comment: Comment) -> CommentAuthorOut:
+    """author может быть None — пользователь удалён (см. models/comment.py:
+    user_id SET NULL при удалении через routers/users.py: delete_user).
+    Комментарий при этом остаётся виден на сайте, просто с "виртуальным"
+    автором-заглушкой, а не падает с ValidationError, как раньше."""
+    if comment.author is None:
+        return _DELETED_AUTHOR
+    return CommentAuthorOut.model_validate(comment.author)
+
+
+def _comment_out(comment: Comment) -> CommentOut:
+    """Собирает CommentOut вручную (как _comment_admin_out ниже) — author
+    не всегда есть напрямую в модели (см. _comment_author_out выше)."""
+    return CommentOut(
+        id=comment.id,
+        article_id=comment.article_id,
+        text=comment.text,
+        status=comment.status,
+        created_at=comment.created_at,
+        author=_comment_author_out(comment),
+        likes_count=getattr(comment, "likes_count", 0),
+        dislikes_count=getattr(comment, "dislikes_count", 0),
+        my_vote=getattr(comment, "my_vote", None),
+    )
+
+
+def _comment_admin_out(comment: Comment, lang: str) -> CommentAdminOut:
+    """Собирает CommentAdminOut вручную (как _article_out в routers/articles.py) —
+    Article.title больше не читается напрямую из модели (see title_ru/title_en +
+    _pick_lang), поэтому CommentArticleOut.title нельзя строить через
+    from_attributes прямо из comment.article."""
+    return CommentAdminOut(
+        id=comment.id,
+        article_id=comment.article_id,
+        text=comment.text,
+        status=comment.status,
+        created_at=comment.created_at,
+        author=_comment_author_out(comment),
+        likes_count=getattr(comment, "likes_count", 0),
+        dislikes_count=getattr(comment, "dislikes_count", 0),
+        my_vote=getattr(comment, "my_vote", None),
+        article=CommentArticleOut(
+            id=comment.article.id,
+            title=_pick_lang(comment.article.title_ru, comment.article.title_en, lang),
+        ),
+    )
+
+
 @router.get("/articles/{article_id}/comments", response_model=CommentListOut)
 def list_comments(
     article_id: int,
@@ -81,7 +135,7 @@ def list_comments(
     items = db.execute(stmt).scalars().all()
     total = db.execute(select(func.count()).select_from(Comment).where(*filters)).scalar_one()
     _annotate_votes(db, items, current_user)
-    return CommentListOut(items=items, total=total)
+    return CommentListOut(items=[_comment_out(c) for c in items], total=total)
 
 
 @router.post("/articles/{article_id}/comments", response_model=CommentOut, status_code=201)
@@ -101,6 +155,19 @@ def create_comment(
     if article is None:
         raise HTTPException(status_code=404, detail="Статья не найдена")
 
+    # Комментировать может только пользователь с подтверждённым email — это
+    # снижает спам/боты с одноразовыми адресами. Админов не трогаем: их
+    # аккаунт и так привилегированный (может модерировать чужие комментарии),
+    # заставлять их отдельно подтверждать почту избыточно.
+    if not current_user.email_verified and current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "email_not_verified",
+                "detail": "Подтвердите email, чтобы оставлять комментарии",
+            },
+        )
+
     comment = Comment(
         article_id=article_id,
         user_id=current_user.id,
@@ -114,7 +181,7 @@ def create_comment(
     stmt = select(Comment).where(Comment.id == comment.id).options(*COMMENT_LOAD_OPTIONS)
     comment = db.execute(stmt).scalar_one()
     _annotate_votes(db, [comment], current_user)
-    return comment
+    return _comment_out(comment)
 
 
 @router.post("/comments/{comment_id}/vote", response_model=CommentVoteOut)
@@ -180,6 +247,7 @@ def list_all_comments(
     status_filter: str | None = Query(default=None, alias="status", pattern="^(pending|approved|rejected)$"),
     skip: int = 0,
     limit: int = 20,
+    lang: str = Query(default="ru"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),
 ):
@@ -200,13 +268,14 @@ def list_all_comments(
     items = db.execute(stmt).scalars().all()
     total = db.execute(select(func.count()).select_from(Comment).where(*filters)).scalar_one()
     _annotate_votes(db, items, None)
-    return CommentAdminListOut(items=items, total=total)
+    return CommentAdminListOut(items=[_comment_admin_out(c, lang) for c in items], total=total)
 
 
 @router.patch("/comments/{comment_id}/status", response_model=CommentAdminOut)
 def moderate_comment(
     comment_id: int,
     payload: CommentStatusUpdate,
+    lang: str = Query(default="ru"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),
 ):
@@ -222,7 +291,7 @@ def moderate_comment(
     stmt = select(Comment).where(Comment.id == comment_id).options(*COMMENT_ADMIN_LOAD_OPTIONS)
     comment = db.execute(stmt).scalar_one()
     _annotate_votes(db, [comment], None)
-    return comment
+    return _comment_admin_out(comment, lang)
 
 
 @router.delete("/comments/{comment_id}", status_code=204)

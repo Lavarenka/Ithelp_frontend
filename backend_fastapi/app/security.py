@@ -15,6 +15,11 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    # Пустой хэш — пользователь без пароля (вошёл через Google/GitHub, см.
+    # models/user.py). passlib на пустой строке падает с ошибкой, поэтому
+    # просто считаем пароль неверным.
+    if not hashed_password:
+        return False
     return pwd_context.verify(plain_password, hashed_password)
 
 

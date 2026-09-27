@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
@@ -7,8 +7,12 @@ import FavoriteButton from "../FavoriteButton/FavoriteButton";
 import MarkdownContent from "../MarkdownContent/MarkdownContent";
 import CommentSection from "../CommentSection/CommentSection";
 import SeoHead from "../SeoHead/SeoHead";
+import Avatar from "../Avatar/Avatar";
 import { toPlainExcerpt } from "../../utils/markdown";
+import { formatRelativeTime } from "../../utils/relativeTime";
+import { estimateReadingMinutes } from "../../utils/readingTime";
 import { SITE_BASE_URL, SITE_NAME } from "../../seoConfig";
+import "./ArticlePage.css";
 
 const ArticlePage = () => {
   const { t, i18n } = useTranslation();
@@ -22,6 +26,24 @@ const ArticlePage = () => {
   // и без показа "Загрузка..." (старый текст просто заменится новым — он в
   // этот момент всё равно погашен, см. toggleLanguage в App.jsx).
   const loadedIdRef = useRef(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const copyTimeoutRef = useRef(null);
+  // Число комментариев для строки со статистикой (иконка с числом рядом с
+  // просмотрами) — изначально берём из ArticleOut.comments_count (снимок на
+  // момент открытия страницы), но дальше держим в синхроне с тем, что
+  // реально показывает CommentSection (см. её onTotalChange) — иначе число
+  // "замерзало" на старом значении после добавления/одобрения комментария.
+  const [commentsCount, setCommentsCount] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    setCommentsCount(null);
+  }, [id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,6 +93,43 @@ const ArticlePage = () => {
   }, [id, i18n.language]);
 
   const tags = article?.tags ?? [];
+  const readingMinutes = useMemo(() => estimateReadingMinutes(article?.content), [article?.content]);
+  const publishedAbsolute = article?.created_at
+    ? new Date(article.created_at).toLocaleDateString(i18n.language === "en" ? "en-US" : "ru-RU", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "";
+
+  // Копируем ссылку на статью в буфер обмена — раньше кнопка "Поделиться"
+  // была только на карточке в ленте (ArticleCard) и никуда не вела (href="#").
+  // Здесь делаем её по-настоящему рабочей: Clipboard API с запасным вариантом
+  // через execCommand для браузеров/контекстов, где он недоступен (например,
+  // без HTTPS).
+  const handleShare = async () => {
+    const url = `${SITE_BASE_URL}/articles/${id}`;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = url;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setLinkCopied(true);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      // Буфер обмена недоступен (нет разрешения и т.п.) — не критично, просто
+      // ничего не показываем вместо копирования.
+    }
+  };
 
   return (
     <div className="layout_main">
@@ -124,9 +183,53 @@ const ArticlePage = () => {
                 <h1>{article.title}</h1>
                 <FavoriteButton articleId={article.id} size="large" />
               </div>
-              <p className="card_time mb-3">
-                {t("articlePage.views", { count: article.views ?? 0 })}
-              </p>
+
+              {/* Автор + дата публикации + время чтения — раньше на странице
+                  статьи не было ни того, ни другого, ни третьего (только
+                  голый счётчик просмотров текстом), хотя все данные уже
+                  приходят с бэкенда в ArticleOut (author, created_at) — не
+                  показывались только на этой странице (в ленте — ArticleCard
+                  — автор и дата уже были). */}
+              <div className="d-flex align-items-center mt-3 mb-3">
+                <Avatar
+                  src={article.author?.avatar}
+                  alt={article.author?.username}
+                  size="md"
+                  className="me-2"
+                />
+                <div>
+                  <div className="article_meta_author">
+                    {article.author?.username ?? t("articleCard.authorFallback")}
+                  </div>
+                  <div className="article_meta_sub">
+                    <span title={publishedAbsolute}>
+                      {formatRelativeTime(article.created_at, i18n.language)}
+                    </span>
+                    <span className="article_meta_dot">·</span>
+                    <span>{t("articlePage.readingTime", { minutes: readingMinutes })}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="d-flex flex-wrap align-items-center gap-3 article_stats mb-3">
+                <div className="d-flex align-items-center gap-1" title={t("sidebar.viewsTitle")}>
+                  <i className="fa-regular fa-eye"></i>
+                  <span>{article.views ?? 0}</span>
+                </div>
+                <div className="d-flex align-items-center gap-1" title={t("sidebar.commentsTitle")}>
+                  <i className="fa-regular fa-comment"></i>
+                  <span>{commentsCount ?? article.comments_count ?? 0}</span>
+                </div>
+                <button
+                  type="button"
+                  className={`article_share_btn${linkCopied ? " article_share_btn--copied" : ""}`}
+                  onClick={handleShare}
+                >
+                  <i className={linkCopied ? "fa-solid fa-check" : "fa-solid fa-share"}></i>
+                  <span>{linkCopied ? t("articlePage.linkCopied") : t("articleCard.shareTitle")}</span>
+                </button>
+              </div>
+
               {tags.length > 0 && (
                 <div className="d-flex card_tags mb-3">
                   {tags.map((tag) => (
@@ -146,7 +249,7 @@ const ArticlePage = () => {
                   Markdown-парсер не ломается на plain-тексте. */}
               <MarkdownContent content={article.content} />
 
-              <CommentSection articleId={article.id} />
+              <CommentSection articleId={article.id} onTotalChange={setCommentsCount} />
             </>
           )}
         </div>

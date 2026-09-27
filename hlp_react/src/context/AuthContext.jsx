@@ -46,6 +46,13 @@ export function AuthProvider({ children }) {
     setUser(userData);
   }, []);
 
+  // Вход по уже готовому токену — после возврата с Google/GitHub (см.
+  // OAuthCallbackPage). Профиль подтянет эффект ниже, который следит за token.
+  const loginWithToken = useCallback((accessToken) => {
+    localStorage.setItem(TOKEN_STORAGE_KEY, accessToken);
+    setToken(accessToken);
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     setToken(null);
@@ -203,6 +210,34 @@ export function AuthProvider({ children }) {
     [token]
   );
 
+  // Смена (или первичная установка — для OAuth-only пользователей) пароля,
+  // страница "Профиль". currentPassword может быть null/undefined — бэкенд
+  // сам решает, обязателен ли он (see UserOut.has_password / PATCH
+  // /auth/me/password на бэкенде). Не трогает user в контексте — пароль не
+  // входит в UserOut целиком (только has_password), а он тут не меняется.
+  const changePassword = useCallback(
+    async (currentPassword, newPassword, newPasswordConfirm) => {
+      const response = await fetch(`${API_BASE_URL}/auth/me/password`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          current_password: currentPassword || null,
+          new_password: newPassword,
+          new_password_confirm: newPasswordConfirm,
+        }),
+      });
+      if (!response.ok) {
+        const { message, code } = await extractErrorMessage(response, i18n.t("auth.genericError"));
+        throw authError(message, code);
+      }
+      return response.json();
+    },
+    [token]
+  );
+
   const value = useMemo(
     () => ({
       token,
@@ -211,13 +246,27 @@ export function AuthProvider({ children }) {
       isAdmin: user?.role === "admin",
       isLoading,
       login,
+      loginWithToken,
       register,
       logout,
       refreshUser,
       resendVerification,
       updateProfile,
+      changePassword,
     }),
-    [token, user, isLoading, login, register, logout, refreshUser, resendVerification, updateProfile]
+    [
+      token,
+      user,
+      isLoading,
+      login,
+      loginWithToken,
+      register,
+      logout,
+      refreshUser,
+      resendVerification,
+      updateProfile,
+      changePassword,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

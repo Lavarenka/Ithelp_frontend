@@ -35,6 +35,29 @@
     color: #575353;
 }
 
+/* Кнопка "Поделиться" в карточке ленты (см. ArticleCard.jsx) — раньше была
+   мёртвой ссылкой <a href="#">, оформлена так же нейтрально, как остальные
+   иконки в этом ряду (просмотры/комментарии), только теперь кликабельна. */
+.card_share_btn {
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    color: var(--title-color);
+    font-size: inherit;
+    line-height: 1;
+    cursor: pointer;
+    transition: color .3s;
+}
+
+.card_share_btn:hover {
+    color: #575353;
+}
+
+.card_share_btn--copied {
+    color: #2e7d32;
+}
+
 .body {
     overflow: hidden;
     flex: 1 1 auto;
