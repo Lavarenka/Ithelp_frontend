@@ -85,3 +85,50 @@ GITHUB_CLIENT_SECRET=...
 
 - Сейчас сайт — чистый client-side SPA без SSR/пре-рендеринга (осознанный выбор при доработке SEO). Если после деплоя окажется, что часть поисковиков плохо индексирует JS-контент — можно будет вернуться к вопросу пре-рендеринга отдельных страниц.
 - В `SeoHead.jsx` нет `og:image` — на сайте нет готового лого/обложки для превью в соцсетях. Если появится такая картинка — добавить `SITE_OG_IMAGE` в `seoConfig.js` и прокинуть в `SeoHead`.
+
+## 8. Docker-деплой (ветка `deploy-prep`)
+
+Подготовлены файлы для запуска всего проекта в Docker одной командой: `backend_fastapi/Dockerfile`, `hlp_react/Dockerfile` + `nginx.conf` (статика + SPA fallback), `docker-compose.prod.yml` в корне репозитория (Postgres + backend + frontend + nginx-certbot для HTTPS), `deploy/nginx/user_conf.d/*.conf` (reverse proxy), `.env.prod.example`.
+
+Схема: один домен на сайт (`yourdomain.example` + `www.`) и отдельный поддомен на API (`api.yourdomain.example`) — у каждого свой сертификат Let's Encrypt, оба выпускаются и продлеваются автоматически образом [`jonasal/nginx-certbot`](https://github.com/JonasAlfredsson/docker-nginx-certbot).
+
+### Перед первым запуском
+
+- [ ] На сервере установлены Docker и Docker Compose (`docker compose version`).
+- [ ] Куплен домен, настроены DNS A-записи на IP сервера: `yourdomain.example`, `www.yourdomain.example`, `api.yourdomain.example` (три записи, не забыть api-поддомен).
+- [ ] `cp .env.prod.example .env.prod` → заполнить (пароль Postgres, почта для Let's Encrypt, `VITE_API_URL=https://api.yourdomain.example`, ключ reCAPTCHA). Оставить `STAGING=1` на первый запуск.
+- [ ] `cp backend_fastapi/.env.example backend_fastapi/.env` → заполнить как обычно (см. пункты 2–5 выше), и ОБЯЗАТЕЛЬНО указать `DATABASE_URL=postgresql+psycopg://<POSTGRES_USER>:<POSTGRES_PASSWORD>@db:5432/<POSTGRES_DB>` — логин/пароль/имя базы должны СОВПАДАТЬ с тем, что в `.env.prod`. Хост — ровно `db` (имя сервиса в docker-compose, не `localhost`).
+- [ ] В `deploy/nginx/user_conf.d/site.conf` и `api.conf` заменить `yourdomain.example` на реальный домен — в ДВУХ местах в каждом файле (`server_name` и три пути `ssl_certificate*`).
+- [ ] Перенос напоминаний из пунктов 1–6 выше (домен в `seoConfig.js`/`config.py`/`robots.txt`, SMTP на рабочую почту, reCAPTCHA-домен, OAuth redirect URI) — они никуда не делись, просто теперь применяются к реальному, а не локальному адресу.
+
+### Запуск
+
+```
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml logs -f nginx-certbot   # проверить, что сертификат выпустился без ошибок
+```
+
+Пока `STAGING=1` — сертификат будет недоверенным (браузер покажет предупреждение), это ожидаемо и нужно только чтобы не упереться в лимит запросов Let's Encrypt во время отладки конфига. Когда всё поднялось без ошибок:
+
+```
+# в .env.prod поставить STAGING=0 (или удалить строку), затем:
+docker compose -f docker-compose.prod.yml up -d --force-recreate nginx-certbot
+```
+
+### После первого успешного запуска
+
+- [ ] Сайт открывается по `https://yourdomain.example` без предупреждения браузера о сертификате.
+- [ ] `https://api.yourdomain.example/sitemap.xml` (или как называется эндпоинт) отвечает — бэкенд доступен снаружи.
+- [ ] Завести бэкап volume `pg_data` (простейший вариант — `docker compose -f docker-compose.prod.yml exec db pg_dump -U <user> <db> > backup.sql` по расписанию, cron на сервере).
+- [ ] Если на локальной SQLite (`backend_fastapi/hlp.db`) уже есть реальные данные (статьи, пользователи), которые нужны на проде — это ОТДЕЛЬНАЯ задача переноса (дамп SQLite → импорт в Postgres), этот docker-compose стартует с пустой базой.
+
+### Дальнейшие обновления сайта (когда решите, как именно — см. обсуждение в чате)
+
+Rebuild + перезапуск только изменившегося сервиса, без даунтайма остальных, например:
+
+```
+docker compose -f docker-compose.prod.yml up -d --build backend
+docker compose -f docker-compose.prod.yml up -d --build frontend
+```
+
+`nginx-certbot` и `db` трогать не нужно — их пересобирать/перезапускать при обычных правках кода не требуется.

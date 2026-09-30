@@ -22,7 +22,17 @@ def _ensure_comments_user_id_nullable() -> None:
     новая таблица с нужной схемой -> копируем данные -> удаляем старую ->
     переименовываем) и переносим существующие данные без потерь. Должно
     выполняться ДО Base.metadata.create_all() ниже, пока таблицы comments
-    с новой схемой ещё не существует."""
+    с новой схемой ещё не существует.
+
+    Само тело функции использует SQLite-специфичный PRAGMA foreign_keys —
+    на PostgreSQL это синтаксическая ошибка. Для совсем новой базы (прод,
+    Postgres) это не страшно само по себе — таблицы comments ещё нет, и
+    функция вышла бы по проверке ниже, даже не дойдя до PRAGMA. Но гейт по
+    database_url ставим явно, а не полагаемся на порядок проверок: так
+    функция остаётся безопасной, даже если её вызовут позже, на уже не
+    пустой Postgres-базе (например, при переносе данных со старого SQLite)."""
+    if not settings.database_url.startswith("sqlite"):
+        return
     inspector = inspect(engine)
     if "comments" not in inspector.get_table_names():
         return  # таблицы ещё нет — create_all ниже создаст её сразу с nullable=True

@@ -1,0 +1,78 @@
+version: "3.8"
+
+# Продакшен-деплой it_hlp целиком через Docker.
+# Подробная пошаговая инструкция — DEPLOY_CHECKLIST.md, раздел "Docker-деплой".
+#
+# Коротко, перед первым запуском:
+#   1. cp .env.prod.example .env.prod          -> заполнить (пароль Postgres, домен, почта для Let's Encrypt)
+#   2. cp backend_fastapi/.env.example backend_fastapi/.env -> заполнить (в т.ч. DATABASE_URL под Postgres
+#      ниже, см. пример в .env.prod.example — пароль ДОЛЖЕН совпадать с тем, что в .env.prod)
+#   3. В deploy/nginx/user_conf.d/*.conf заменить yourdomain.example на реальный домен
+#      (это нужно сделать в ДВУХ местах в каждом файле: server_name и пути ssl_certificate*)
+#   4. Первый запуск — со STAGING=1 в .env.prod (тестовый, недоверенный сертификат,
+#      зато не тратит лимит запросов Let's Encrypt, если конфиг с первого раза не заведётся).
+#      Когда всё поднялось без ошибок — поставить STAGING=0 и перезапустить nginx-certbot.
+#
+# Команда запуска: docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-hlp}
+      POSTGRES_USER: ${POSTGRES_USER:-hlp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hlp}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Порт наружу НЕ пробрасываем (в отличие от backend_fastapi/docker-compose.yml,
+    # который для локальной разработки) — прод-база доступна только другим
+    # контейнерам внутри docker-сети, не с хоста и не из интернета.
+
+  backend:
+    build:
+      context: ./backend_fastapi
+    restart: unless-stopped
+    env_file:
+      - backend_fastapi/.env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./hlp_react
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_RECAPTCHA_SITE_KEY: ${VITE_RECAPTCHA_SITE_KEY}
+    restart: unless-stopped
+    env_file:
+      - .env.prod
+    depends_on:
+      - backend
+
+  nginx-certbot:
+    image: jonasal/nginx-certbot:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env.prod
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - ./deploy/nginx/user_conf.d:/etc/nginx/user_conf.d:ro
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  pg_data:
+  letsencrypt:
