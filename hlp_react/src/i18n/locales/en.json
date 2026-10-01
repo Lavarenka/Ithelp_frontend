@@ -31,7 +31,8 @@
     "languageAriaLabel": "Switch site language"
   },
   "footer": {
-    "brand": "it_hlp blog © 2024"
+    "brand": "it_hlp blog © 2026",
+    "devNotice": "The site is under development"
   },
   "sidebar": {
     "adLabel": "advertisement",
@@ -146,8 +147,8 @@
   },
   "about": {
     "heroTitle": "About it_hlp",
-    "heroLead": "A blog for people learning to build sites and services — from markup to production — without wading through academic dryness.",
-    "storyP1": "Hi! I started it_hlp to collect, in one place, write-ups on the things I've had to figure out myself as a developer — from JavaScript and React basics to Docker, databases, and what actually happens when a site \"ships\" to a server. No fluff, and no pretending it's all trivial — just plain, step-by-step explanations.",
+    "heroLead": "A blog about IT in general — web development, mobile apps, game dev, design, and everything in between — for people learning without wading through academic dryness.",
+    "storyP1": "Hi! I started it_hlp to collect, in one place, write-ups on topics across IT — web development, mobile apps, game dev, design — everything I've had to figure out myself as a developer. From JavaScript and React basics to Docker, databases, and what actually happens when a site \"ships\" to a server. No fluff, and no pretending it's all trivial — just plain, step-by-step explanations.",
     "storyP2": "I'm building the site itself too — FastAPI backend, React frontend — and it keeps growing new features: search, comments, favorites, a profile with an avatar. It's somewhere between a blog and a learning pet project, and that feels right — if I'm writing about development, the site itself might as well be a living example of it.",
     "wipNote": "This page is still a work in progress — I'll keep expanding and polishing it, same as the rest of the site.",
     "featuresTitle": "What the site can already do",

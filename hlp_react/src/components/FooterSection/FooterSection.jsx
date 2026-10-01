@@ -10,21 +10,37 @@ export default function Footer({ isEn }) {
           <div className="row py-3 align-items-center footer_row">
             <div className="col-md-6">
               <h5 className="footer_title">{t("footer.brand")}</h5>
+              <p className="footer_notice">{t("footer.devNotice")}</p>
             </div>
 
             <div className="col-md-6 d-flex justify-content-md-end footer_socials">
-              <div className="me-2">
-                <i className="fa-brands fa-square-facebook fa-xl"></i>
-              </div>
-              <div className="me-2">
-                <i className="fa-brands fa-vk fa-xl"></i>
-              </div>
-              <div className="me-2">
+              {/* TODO: подставить реальные ссылки, когда их пришлют */}
+              <a
+                className="me-2"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub"
+              >
+                <i className="fa-brands fa-square-github fa-xl"></i>
+              </a>
+              <a
+                className="me-2"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+              >
                 <i className="fa-brands fa-square-instagram fa-xl"></i>
-              </div>
-              <div className="">
+              </a>
+              <a
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Telegram"
+              >
                 <i className="fa-brands fa-telegram fa-xl"></i>
-              </div>
+              </a>
             </div>
           </div>
         </div>
