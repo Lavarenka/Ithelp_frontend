@@ -1,58 +1,115 @@
-# it_hlp
+# it_hlp — IT Blog & Mini-CMS
 
-Учебный блог для начинающих разработчиков: статьи по программированию и небольшие
-шпаргалки-инструкции. Проект в активной разработке — сейчас реализован минимальный
-слой "лента статей + страница статьи", дальше стек будет обрастать функциональностью.
+A full-stack, bilingual (RU/EN) blog platform covering IT in general — web development,
+mobile apps, game dev, design, and everything in between. Built and deployed end-to-end
+as a personal project: **FastAPI + PostgreSQL** backend, **React + Vite** frontend,
+Dockerized and running in production behind Nginx with automatic Let's Encrypt SSL.
 
-## Стек
+**Live:** https://it-hlp.com
 
-**Frontend**
-- React 19
-- Vite 7
-- React Router 7 (клиентский роутинг)
-- Bootstrap 5 + Font Awesome (вёрстка, подключены через CDN)
+## Screenshots
+
+### Public site
+
+![Homepage](docs/screenshots/homepage.jpg)
+*Article feed with tags, view/comment counters, and a popular-articles sidebar.*
+
+![Article page](docs/screenshots/article-page.jpg)
+*Markdown-rendered article with syntax-highlighted code blocks and a one-click copy button.*
+
+### Admin panel (`/admin`, role-gated)
+
+![Admin — articles](docs/screenshots/admin-articles.jpg)
+*Article list with search and inline edit/delete.*
+
+![Admin — new article](docs/screenshots/admin-new-article.jpg)
+*Bilingual article editor — separate RU/EN tabs, tag multi-select, Markdown content.*
+
+![Admin — tags](docs/screenshots/admin-tags.jpg)
+*Nested tag/category management.*
+
+![Admin — comments](docs/screenshots/admin-comments.jpg)
+*Comment moderation queue (pending / published / rejected).*
+
+## Features
+
+**For readers**
+- Live search with highlighted matches, as you type
+- Favorites — save articles, synced to your account
+- Comments with like/dislike voting; new comments go through moderation
+- Nested tags/categories for browsing by topic
+- User profile with an uploadable avatar (in-browser crop)
+- Email/password login, plus Google and GitHub OAuth
+- Email verification and password reset via a real transactional mailer (Resend)
+- Full RU/EN localization — UI and content
+- SEO: per-page meta tags, dynamically generated `sitemap.xml`, `noindex` on private pages
+
+**Admin panel**
+- Bilingual article editor (Markdown content, tag assignment, per-language tabs)
+- Tag/category CRUD with parent/child nesting
+- Comment moderation (approve / reject / delete)
+- User management (promote to admin, suspend, delete)
+
+## Tech stack
 
 **Backend**
-- FastAPI
-- SQLAlchemy 2.0 (ORM)
-- SQLite для локальной разработки / PostgreSQL для продакшена — переключается одной
-  строкой в `.env`, без изменений в коде
-- Alembic — зарезервирован под миграции (пока схема создаётся автоматически)
+- [FastAPI](https://fastapi.tiangolo.com/) + [SQLAlchemy 2.0](https://www.sqlalchemy.org/)
+- PostgreSQL in production, SQLite for local dev — switched by one `DATABASE_URL` line in
+  `.env`, no code changes
+- JWT auth (`python-jose`) + `passlib`/bcrypt password hashing
+- OAuth 2.0 "authorization code" flow for Google & GitHub, implemented directly against
+  their APIs via `urllib` — no third-party OAuth library
+- Transactional email over SMTP (Resend in production)
+- Google reCAPTCHA v2 on sensitive forms
+- Pydantic v2 settings, fully typed request/response schemas
 
-## Структура репозитория
+**Frontend**
+- React 19 + Vite 7
+- React Router 7 (client-side routing)
+- `react-i18next` for RU/EN localization
+- `react-markdown` + `remark-gfm` + `rehype-highlight` — Markdown rendering, GFM tables,
+  syntax-highlighted code with a copy-to-clipboard button
+- `react-easy-crop` for the avatar upload/crop flow
+- Bootstrap 5 + Font Awesome for layout and icons
+
+**Infrastructure**
+- Docker multi-stage builds for both services; `docker-compose.prod.yml` orchestrates
+  Postgres + backend + frontend + an nginx-certbot reverse proxy
+- Automatic Let's Encrypt issuance/renewal via `jonasal/nginx-certbot` — no manual
+  certificate handling
+- Deployed on a Contabo VPS, DNS on Cloudflare
+- `.gitattributes`-normalized line endings
+
+## Repository structure
 
 ```
 Ithelp_frontend/
-├── hlp_react/            # Frontend — React + Vite
+├── hlp_react/                  # Frontend — React + Vite
+│   ├── Dockerfile               # multi-stage build → nginx:alpine
 │   └── src/
-│       ├── api.js            # базовый URL бэкенда
-│       └── components/       # Header, Body (лента статей), Sitebar, Footer, CardSection
+│       ├── components/          # Header, Footer, ArticleFeed, AdminPage, AuthModal, ...
+│       ├── i18n/locales/         # ru.json / en.json
+│       └── api.js                # backend base URL / fetch helpers
 │
-├── backend_fastapi/      # Backend — FastAPI + SQLAlchemy
+├── backend_fastapi/            # Backend — FastAPI + SQLAlchemy
+│   ├── Dockerfile
 │   └── app/
-│       ├── main.py           # точка входа, CORS, роутеры
-│       ├── config.py         # настройки из .env
-│       ├── database.py       # подключение к БД
-│       ├── models/           # SQLAlchemy-модели
-│       ├── schemas/          # Pydantic-схемы
-│       └── routers/          # эндпоинты
+│       ├── main.py              # entrypoint, CORS, router registration
+│       ├── config.py            # settings from .env
+│       ├── models/              # SQLAlchemy models
+│       ├── schemas/             # Pydantic request/response schemas
+│       └── routers/             # articles, tags, comments, favorites, auth, oauth, users, sitemap
 │
+├── deploy/nginx/                # production nginx-certbot server configs
+├── docker-compose.prod.yml      # Postgres + backend + frontend + nginx-certbot
 └── README.md
 ```
 
-## Как это работает сейчас
+## Running locally
 
-Фронтенд на `/` запрашивает список статей у бэкенда (`GET /articles/`), выводит их
-лентой карточек; клик по статье открывает `/articles/:id` с полным текстом и
-увеличивает счётчик просмотров. Реализовано: одна сущность — статья (заголовок,
-текст, просмотры, дата создания). Категории, теги, комментарии, авторизация — пока
-не реализованы, это следующие шаги.
+Two processes side by side — backend and frontend.
 
-## Быстрый старт (Windows)
-
-Нужны два процесса одновременно — бэкенд и фронтенд, каждый в своём окне PowerShell.
-
-### 1. Backend
+### Backend
 
 ```powershell
 cd backend_fastapi
@@ -60,17 +117,16 @@ python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 copy .env.example .env
-python seed.py
+python seed.py                 # optional: sample articles & tags
 uvicorn app.main:app --reload --port 8000
 ```
 
-Проверка: [http://localhost:8000/docs](http://localhost:8000/docs) — Swagger со
-списком эндпоинтов.
+API docs: [http://localhost:8000/docs](http://localhost:8000/docs) (auto-generated by FastAPI).
 
-По умолчанию используется SQLite (файл `hlp.db` создаётся автоматически, ничего
-ставить не нужно). Как перейти на PostgreSQL — см. `backend_fastapi/README.md`.
+Uses SQLite by default (`hlp.db`, created automatically) — no database setup needed.
+Switch to PostgreSQL via `DATABASE_URL` in `.env`.
 
-### 2. Frontend
+### Frontend
 
 ```powershell
 cd hlp_react
@@ -78,13 +134,26 @@ npm install
 npm run dev
 ```
 
-Проверка: [http://localhost:5173/](http://localhost:5173/) — лента статей должна
-подтянуться с бэкенда.
+App: [http://localhost:5173/](http://localhost:5173/)
 
-## Известные ограничения
+### Full stack via Docker
 
-- Пагинация в ленте — пока просто вёрстка без логики переключения страниц.
-- Комментарии, категории, теги на карточках статей — статичные заглушки в вёрстке,
-  реальных данных под них в API ещё нет.
-- Bootstrap/Font Awesome подключены через CDN — для полностью офлайн-сборки
-  потребуется перевести их в зависимости проекта.
+```bash
+docker compose up -d --build
+```
+
+## Deployment
+
+The production stack runs on a single VPS via Docker Compose:
+
+- **db** — PostgreSQL
+- **backend** — FastAPI, built from `backend_fastapi/Dockerfile`
+- **frontend** — the Vite build served by Nginx, built from `hlp_react/Dockerfile`
+- **nginx-certbot** — reverse proxy in front of both; handles TLS termination and
+  automatic certificate renewal for the production domains
+
+See `DEPLOY_CHECKLIST.md` for the full deploy runbook.
+
+---
+
+Built and maintained by [@Lavarenka](https://github.com/Lavarenka).
