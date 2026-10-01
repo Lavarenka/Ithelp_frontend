@@ -97,6 +97,41 @@
     line-height: 1.45;
 }
 
+/* --- Соцсети в блоке "Связь" --- */
+
+.about-socials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+}
+
+.about-social {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 999px;
+    padding: 0.5rem 1rem 0.5rem 0.85rem;
+    color: var(--title-color, #212020);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.about-social:hover,
+.about-social:focus {
+    background: #212020;
+    border-color: #212020;
+    color: #fff;
+}
+
+.about-social_icon {
+    font-size: 16px;
+}
+
 /* --- Темы блога --- */
 
 .about-topics {

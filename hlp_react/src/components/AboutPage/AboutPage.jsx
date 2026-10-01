@@ -115,10 +115,36 @@ export default function AboutPage() {
           {/* --- Контакты --- */}
           <section className="about-section">
             <h2 className="about-section_title">{t("about.contactTitle")}</h2>
-            <p className="about-text">
-              <i className="fa-solid fa-clock me-2" aria-hidden="true"></i>
-              {t("about.contactSoon")}
-            </p>
+            <p className="about-text">{t("about.contactText")}</p>
+            <div className="about-socials">
+              <a
+                className="about-social"
+                href="https://github.com/Lavarenka"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i className="fa-brands fa-square-github about-social_icon" aria-hidden="true"></i>
+                <span>GitHub</span>
+              </a>
+              <a
+                className="about-social"
+                href="https://t.me/LAVORENKO_A"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i className="fa-brands fa-telegram about-social_icon" aria-hidden="true"></i>
+                <span>Telegram</span>
+              </a>
+              <a
+                className="about-social"
+                href="https://www.instagram.com/artysiom_lavorenko/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i className="fa-brands fa-square-instagram about-social_icon" aria-hidden="true"></i>
+                <span>Instagram</span>
+              </a>
+            </div>
           </section>
         </div>
       </div>

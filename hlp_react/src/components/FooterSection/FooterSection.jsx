@@ -14,10 +14,9 @@ export default function Footer({ isEn }) {
             </div>
 
             <div className="col-md-6 d-flex justify-content-md-end footer_socials">
-              {/* TODO: подставить реальные ссылки, когда их пришлют */}
               <a
                 className="me-2"
-                href="#"
+                href="https://github.com/Lavarenka"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
@@ -26,7 +25,7 @@ export default function Footer({ isEn }) {
               </a>
               <a
                 className="me-2"
-                href="#"
+                href="https://www.instagram.com/artysiom_lavorenko/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
@@ -34,7 +33,7 @@ export default function Footer({ isEn }) {
                 <i className="fa-brands fa-square-instagram fa-xl"></i>
               </a>
               <a
-                href="#"
+                href="https://t.me/LAVORENKO_A"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Telegram"

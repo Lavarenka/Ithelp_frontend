@@ -149,8 +149,8 @@
     "heroTitle": "About it_hlp",
     "heroLead": "A blog about IT in general — web development, mobile apps, game dev, design, and everything in between — for people learning without wading through academic dryness.",
     "storyP1": "Hi! I started it_hlp to collect, in one place, write-ups on topics across IT — web development, mobile apps, game dev, design — everything I've had to figure out myself as a developer. From JavaScript and React basics to Docker, databases, and what actually happens when a site \"ships\" to a server. No fluff, and no pretending it's all trivial — just plain, step-by-step explanations.",
-    "storyP2": "I'm building the site itself too — FastAPI backend, React frontend — and it keeps growing new features: search, comments, favorites, a profile with an avatar. It's somewhere between a blog and a learning pet project, and that feels right — if I'm writing about development, the site itself might as well be a living example of it.",
-    "wipNote": "This page is still a work in progress — I'll keep expanding and polishing it, same as the rest of the site.",
+    "storyP2": "No dry academic lectures here — just clear explanations that help you actually understand the topic, from first steps to practice. Save articles to your favorites, discuss them in the comments, and search the site — everything you need to come back and learn at your own pace.",
+    "wipNote": "The site is still under development — some pages and features are still being finished and may change.",
     "featuresTitle": "What the site can already do",
     "features": {
       "search": { "title": "Live search", "text": "Searches article titles and text as you type, with matches highlighted." },
@@ -162,7 +162,7 @@
     },
     "topicsTitle": "Blog topics",
     "contactTitle": "Get in touch",
-    "contactSoon": "Social links and an email to reach me will show up here soon."
+    "contactText": "Reach out through any of the socials below — happy to hear from you."
   },
   "profile": {
     "title": "Profile",

@@ -1,0 +1,23 @@
+# Нормализуем окончания строк в текстовых файлах — всегда LF в самом
+# репозитории, независимо от того, как их сохранил редактор/ОС на вашей
+# машине. Это чинит проблему, когда чужой редактор/антивирус пересохраняет
+# файл с CRLF и git показывает "изменения" без реальной правки содержимого.
+* text=auto eol=lf
+
+# Windows-скрипты — пусть остаются с CRLF, если вдруг появятся.
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# Бинарные файлы — не трогаем вообще.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
