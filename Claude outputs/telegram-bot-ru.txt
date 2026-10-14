@@ -1,0 +1,225 @@
+Телеграм-боты часто нужны сразу на двух языках — например, если аудитория смешанная (русско- и англоязычная). Разберём, как сделать такого бота с нуля: простую локализацию, Docker-образ и деплой на сервер.
+
+## Выбор библиотеки
+
+Для Python самый удобный вариант сейчас — aiogram 3.x: асинхронный, с нормальной типизацией и удобной системой обработчиков. Список зависимостей проекта — файл `requirements.txt`:
+
+```
+aiogram>=3.0
+```
+
+## Получаем токен
+
+Каждому боту нужен токен. Его выдаёт официальный бот @BotFather: пишем ему `/newbot`, придумываем имя и username, и в ответ получаем строку вида `123456:ABC-DEF...`. Это пароль от вашего бота — его нельзя публиковать и коммитить в git.
+
+## Структура проекта
+
+```
+tg_bot/
+├── bot.py
+├── i18n.py
+├── locales/
+│   ├── ru.json
+│   └── en.json
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+└── .gitignore
+```
+
+## Локализация: без фреймворков, просто словарь
+
+Для небольшого бота не нужен gettext или тяжёлые i18n-библиотеки — достаточно пары JSON-файлов с переводами, как на обычном сайте.
+
+`locales/ru.json`:
+
+```json
+{
+  "start": "Привет! Я бот, который умеет говорить на двух языках 👋",
+  "choose_lang": "Выберите язык:",
+  "lang_set": "Язык переключён на русский."
+}
+```
+
+`locales/en.json`:
+
+```json
+{
+  "start": "Hi! I'm a bilingual bot 👋",
+  "choose_lang": "Choose your language:",
+  "lang_set": "Language switched to English."
+}
+```
+
+И маленький хелпер для загрузки переводов, `i18n.py`:
+
+```python
+import json
+from pathlib import Path
+
+LOCALES_DIR = Path(__file__).parent / "locales"
+_cache: dict[str, dict[str, str]] = {}
+
+
+def t(lang: str, key: str) -> str:
+    if lang not in _cache:
+        path = LOCALES_DIR / f"{lang}.json"
+        _cache[lang] = json.loads(path.read_text(encoding="utf-8"))
+    return _cache[lang].get(key, key)
+```
+
+Если ключа в переводе нет, функция вернёт сам ключ — так сразу видно, чего не хватает, а бот не падает.
+
+## Храним язык пользователя
+
+Для простоты — в памяти процесса. Для продакшена лучше SQLite или Redis, чтобы выбранный язык не сбрасывался при перезапуске бота.
+
+## Код бота
+
+`bot.py`:
+
+```python
+import asyncio
+import os
+
+from aiogram import Bot, Dispatcher, F
+from aiogram.filters import CommandStart
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
+
+from i18n import t
+
+dp = Dispatcher()
+
+# user_id -> "ru" / "en". Живёт в памяти: после перезапуска сбросится.
+user_lang: dict[int, str] = {}
+
+
+def get_lang(user_id: int) -> str:
+    return user_lang.get(user_id, "ru")  # ru — язык по умолчанию
+
+
+def lang_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🇷🇺 Русский", callback_data="lang:ru"),
+                InlineKeyboardButton(text="🇬🇧 English", callback_data="lang:en"),
+            ]
+        ]
+    )
+
+
+@dp.message(CommandStart())
+async def cmd_start(message: Message):
+    lang = get_lang(message.from_user.id)
+    await message.answer(t(lang, "start"))
+    await message.answer(t(lang, "choose_lang"), reply_markup=lang_keyboard())
+
+
+@dp.callback_query(F.data.startswith("lang:"))
+async def set_lang(callback: CallbackQuery):
+    lang = callback.data.split(":")[1]
+    user_lang[callback.from_user.id] = lang
+    await callback.message.edit_text(t(lang, "lang_set"))
+    await callback.answer()
+
+
+async def main():
+    bot = Bot(token=os.environ["TELEGRAM_BOT_TOKEN"])
+    await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+Токен берётся из переменной окружения `TELEGRAM_BOT_TOKEN` — в коде его нет, и так и должно быть.
+
+## Токен в .env
+
+Файл `.env` лежит рядом с `docker-compose.yml`:
+
+```
+TELEGRAM_BOT_TOKEN=сюда_токен_от_BotFather
+```
+
+В репозиторий нужно закоммитить только шаблон `.env.example` (с пустым значением), а сам `.env` — добавить в `.gitignore`:
+
+```
+.env
+```
+
+## Dockerfile
+
+Боту не нужны ни статика, ни открытые порты — всё, что требуется, это Python-процесс, который постоянно работает (long polling):
+
+```dockerfile
+FROM python:3.12-slim
+
+# Чтобы print/логи сразу попадали в docker logs, без буферизации
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python", "bot.py"]
+```
+
+## Запуск в Docker Compose
+
+`docker-compose.yml`:
+
+```yaml
+services:
+  tg_bot:
+    build: .
+    env_file: .env
+    restart: always
+```
+
+`restart: always` — важная деталь: если бот упадёт с ошибкой или сервер перезагрузится, Docker поднимет его обратно сам, без вашего участия.
+
+Бота можно добавить отдельным сервисом в уже существующий `docker-compose.prod.yml` на сервере — или держать отдельным проектом в своей папке. Для начала проще второе: бот ничем не связан с сайтом.
+
+## Деплой на сервер
+
+Та же схема, что и для сайта:
+
+```bash
+git clone <адрес-вашего-репозитория> tg_bot
+cd tg_bot
+cp .env.example .env     # открыть и вписать токен
+docker compose up -d --build
+docker compose logs -f tg_bot
+```
+
+Последняя команда показывает логи в реальном времени — если бот стартовал без ошибок, можно открыть его в Telegram и написать `/start`. Выйти из просмотра логов — `Ctrl+C` (сам бот при этом продолжит работать).
+
+## Обновление бота
+
+Поменяли код — запушили в git, а на сервере:
+
+```bash
+cd tg_bot
+git pull
+docker compose up -d --build
+```
+
+Docker пересоберёт образ и пересоздаст контейнер. `.env` и токен при этом остаются на месте.
+
+## Long polling или webhook
+
+В примере выше бот сам опрашивает Telegram (long polling) — это проще всего и не требует ни домена, ни SSL. Если бот нагруженный и важна скорость ответа, можно перейти на webhook (Telegram сам присылает обновления на ваш HTTPS-адрес), но тогда понадобится публичный домен с сертификатом — как для обычного сайта.
+
+## Итого
+
+Для простого двуязычного бота достаточно: пары JSON-файлов с переводами, словаря для хранения выбранного пользователем языка и одного Docker-контейнера с `restart: always`. Когда бот разрастётся — храните язык пользователя в базе, а не в памяти процесса, и вынесите переводы в отдельный модуль.

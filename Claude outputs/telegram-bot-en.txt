@@ -1,0 +1,225 @@
+Telegram bots often need to support two languages at once — say, when your audience is a mix of Russian- and English-speaking users. Let's build one from scratch: simple localization, a Docker image, and deployment to a server.
+
+## Choosing a library
+
+For Python, the most convenient option right now is aiogram 3.x: async, well-typed, with a clean handler system. The project's dependencies go in `requirements.txt`:
+
+```
+aiogram>=3.0
+```
+
+## Getting a token
+
+Every bot needs a token. It's issued by the official bot @BotFather: send it `/newbot`, pick a name and a username, and you'll get back a string like `123456:ABC-DEF...`. That token is your bot's password — never publish it or commit it to git.
+
+## Project structure
+
+```
+tg_bot/
+├── bot.py
+├── i18n.py
+├── locales/
+│   ├── ru.json
+│   └── en.json
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+└── .gitignore
+```
+
+## Localization: no framework needed, just a dictionary
+
+For a small bot you don't need gettext or a heavyweight i18n library — a couple of JSON files with translations is enough, same idea as on a regular website.
+
+`locales/ru.json`:
+
+```json
+{
+  "start": "Привет! Я бот, который умеет говорить на двух языках 👋",
+  "choose_lang": "Выберите язык:",
+  "lang_set": "Язык переключён на русский."
+}
+```
+
+`locales/en.json`:
+
+```json
+{
+  "start": "Hi! I'm a bilingual bot 👋",
+  "choose_lang": "Choose your language:",
+  "lang_set": "Language switched to English."
+}
+```
+
+And a small loader helper, `i18n.py`:
+
+```python
+import json
+from pathlib import Path
+
+LOCALES_DIR = Path(__file__).parent / "locales"
+_cache: dict[str, dict[str, str]] = {}
+
+
+def t(lang: str, key: str) -> str:
+    if lang not in _cache:
+        path = LOCALES_DIR / f"{lang}.json"
+        _cache[lang] = json.loads(path.read_text(encoding="utf-8"))
+    return _cache[lang].get(key, key)
+```
+
+If a key is missing from a translation, the function returns the key itself — so you can see right away what's missing, and the bot doesn't crash.
+
+## Storing the user's language
+
+To keep it simple, we store it in process memory. For production, use SQLite or Redis, so the chosen language survives a bot restart.
+
+## The bot code
+
+`bot.py`:
+
+```python
+import asyncio
+import os
+
+from aiogram import Bot, Dispatcher, F
+from aiogram.filters import CommandStart
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
+
+from i18n import t
+
+dp = Dispatcher()
+
+# user_id -> "ru" / "en". Lives in memory: resets after a restart.
+user_lang: dict[int, str] = {}
+
+
+def get_lang(user_id: int) -> str:
+    return user_lang.get(user_id, "ru")  # ru is the default language
+
+
+def lang_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="🇷🇺 Русский", callback_data="lang:ru"),
+                InlineKeyboardButton(text="🇬🇧 English", callback_data="lang:en"),
+            ]
+        ]
+    )
+
+
+@dp.message(CommandStart())
+async def cmd_start(message: Message):
+    lang = get_lang(message.from_user.id)
+    await message.answer(t(lang, "start"))
+    await message.answer(t(lang, "choose_lang"), reply_markup=lang_keyboard())
+
+
+@dp.callback_query(F.data.startswith("lang:"))
+async def set_lang(callback: CallbackQuery):
+    lang = callback.data.split(":")[1]
+    user_lang[callback.from_user.id] = lang
+    await callback.message.edit_text(t(lang, "lang_set"))
+    await callback.answer()
+
+
+async def main():
+    bot = Bot(token=os.environ["TELEGRAM_BOT_TOKEN"])
+    await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+The token comes from the `TELEGRAM_BOT_TOKEN` environment variable — it's not in the code, and it shouldn't be.
+
+## The token in .env
+
+The `.env` file sits next to `docker-compose.yml`:
+
+```
+TELEGRAM_BOT_TOKEN=your_token_from_BotFather
+```
+
+Commit only the template `.env.example` (with an empty value), and add the real `.env` to `.gitignore`:
+
+```
+.env
+```
+
+## Dockerfile
+
+A bot doesn't need static files or exposed ports — all it needs is a Python process that keeps running (long polling):
+
+```dockerfile
+FROM python:3.12-slim
+
+# So prints/logs show up in docker logs immediately, without buffering
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python", "bot.py"]
+```
+
+## Running it with Docker Compose
+
+`docker-compose.yml`:
+
+```yaml
+services:
+  tg_bot:
+    build: .
+    env_file: .env
+    restart: always
+```
+
+`restart: always` matters: if the bot crashes or the server reboots, Docker brings it back up on its own, with no manual intervention.
+
+You can add the bot as another service in an existing `docker-compose.prod.yml` on your server, or keep it as a separate project in its own folder. The second is simpler to start with: the bot isn't tied to your website in any way.
+
+## Deploying to a server
+
+Same pattern as deploying a website:
+
+```bash
+git clone <your-repo-url> tg_bot
+cd tg_bot
+cp .env.example .env     # open it and fill in the token
+docker compose up -d --build
+docker compose logs -f tg_bot
+```
+
+The last command streams the logs live — if the bot started without errors, open it in Telegram and send `/start`. To leave the log view, press `Ctrl+C` (the bot itself keeps running).
+
+## Updating the bot
+
+Changed the code and pushed it to git? On the server:
+
+```bash
+cd tg_bot
+git pull
+docker compose up -d --build
+```
+
+Docker rebuilds the image and recreates the container. The `.env` file and the token stay in place.
+
+## Long polling vs. webhook
+
+In the example above the bot polls Telegram itself (long polling) — the simplest option, and it needs neither a domain nor SSL. If the bot is under heavy load and response speed matters, you can switch to a webhook (Telegram pushes updates to an HTTPS address you expose) — but then you'll need a public domain with a certificate, like for a regular website.
+
+## Wrapping up
+
+For a simple bilingual bot, all you need is a couple of JSON translation files, a dictionary tracking each user's chosen language, and one Docker container with `restart: always`. As the bot grows, store the user's language in a database instead of process memory, and move the translations into their own module.

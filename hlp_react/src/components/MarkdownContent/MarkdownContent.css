@@ -137,7 +137,11 @@
     overflow-x: auto;
 }
 
+/* Селектор без .hljs: rehype-highlight не добавляет класс hljs блокам кода без
+   указанного языка, и тогда текст наследовал тёмный цвет статьи на тёмном фоне. */
+.code-block code,
 .code-block code.hljs {
+    color: #c9d1d9;
     background: transparent;
     padding: 0;
     font-size: 0.9rem;
