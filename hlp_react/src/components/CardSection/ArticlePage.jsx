@@ -11,7 +11,7 @@ import Avatar from "../Avatar/Avatar";
 import { toPlainExcerpt } from "../../utils/markdown";
 import { formatRelativeTime } from "../../utils/relativeTime";
 import { estimateReadingMinutes } from "../../utils/readingTime";
-import { SITE_BASE_URL, SITE_NAME } from "../../seoConfig";
+import { SITE_BASE_URL, SITE_NAME, SITE_OG_IMAGE, pageUrl } from "../../seoConfig";
 import "./ArticlePage.css";
 
 const ArticlePage = () => {
@@ -161,6 +161,8 @@ const ArticlePage = () => {
                     "@type": "Article",
                     headline: article.title,
                     description: toPlainExcerpt(article.content, 160),
+                    inLanguage: i18n.language,
+                    image: [SITE_OG_IMAGE],
                     ...(article.created_at && { datePublished: article.created_at }),
                     ...(article.author?.username && {
                       author: {
@@ -174,7 +176,7 @@ const ArticlePage = () => {
                     },
                     mainEntityOfPage: {
                       "@type": "WebPage",
-                      "@id": `${SITE_BASE_URL}/articles/${id}`,
+                      "@id": pageUrl(`/articles/${id}`, i18n.language),
                     },
                   })}
                 </script>

@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     # it-hlp.ru — временная заглушка, пока сайт не задеплоен на реальный домен
     # (см. также frontend/src/seoConfig.js — там та же заглушка для canonical/
     # og:url; при смене домена поменять нужно в ОБОИХ местах).
-    site_base_url: str = "https://it-hlp.ru"
+    site_base_url: str = "https://it-hlp.com"
 
     # --- Google reCAPTCHA v2 (см. app/captcha.py) ---
     # Секретный ключ — только на бэкенде, на фронтенд не попадает никогда.

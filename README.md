@@ -42,7 +42,7 @@ Dockerized and running in production behind Nginx with automatic Let's Encrypt S
 - Email/password login, plus Google and GitHub OAuth
 - Email verification and password reset via a real transactional mailer (Resend)
 - Full RU/EN localization — UI and content
-- SEO: per-page meta tags, dynamically generated `sitemap.xml`, `noindex` on private pages
+- SEO: per-page meta tags, `hreflang` for RU/EN, dynamically generated `sitemap.xml`, `noindex` on private pages (see [SEO](#seo))
 
 **Admin panel**
 - Bilingual article editor (Markdown content, tag assignment, per-language tabs)
@@ -141,6 +141,30 @@ App: [http://localhost:5173/](http://localhost:5173/)
 ```bash
 docker compose up -d --build
 ```
+
+## SEO
+
+The site is a client-rendered SPA, so search-engine visibility is handled explicitly:
+
+- **Per-page meta** — `<title>`, description, canonical, Open Graph and Twitter Card tags, set
+  by a single `SeoHead` component (`react-helmet-async`) on every public page.
+- **Two languages, two URLs** — English lives at the plain path, Russian at `?lang=ru`
+  (the URL parameter takes priority over the language cookie). `canonical` plus
+  `hreflang` (`en`, `ru`, `x-default`) tie the versions together, so Google indexes both
+  languages instead of treating them as duplicates.
+- **`sitemap.xml`** — generated from the database on every request (articles, tags and static
+  pages, each with its `hreflang` alternates; an article without an English translation is
+  listed only in Russian). Served from the main domain through Nginx, because a sitemap must
+  live on the same host as the pages it lists.
+- **`robots.txt`** — blocks private pages (admin, profile, favorites, auth callbacks), which
+  also carry `noindex`. The API subdomain answers with `X-Robots-Tag: noindex`.
+- **Structured data** — schema.org `Article` JSON-LD on every article page.
+- **One canonical host** — `www.it-hlp.com` redirects (301) to `it-hlp.com`.
+- **Link previews** — a branded `og-image.png`, referenced statically in `index.html`.
+
+Known limitation: crawlers that do not run JavaScript (most social-network link scrapers) see
+only the static `og:image` and title, not the per-page tags. Googlebot renders JavaScript and
+sees everything. Pre-rendering would be the next step if social previews become important.
 
 ## Deployment
 

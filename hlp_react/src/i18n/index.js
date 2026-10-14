@@ -9,10 +9,22 @@ export const LANGUAGE_COOKIE = "it_hlp_lang";
 const SUPPORTED_LANGUAGES = ["en", "ru"];
 const DEFAULT_LANGUAGE = "en";
 
-// Язык берём только из куки, которую сами же и пишем при переключении —
-// никакого автоопределения по браузеру/системе: если куки нет (первый
-// visita), сайт обязан открыться на английском, это жёсткое требование.
+// Язык берём из адреса (?lang=ru / ?lang=en) или из куки, которую сами же и
+// пишем при переключении — никакого автоопределения по браузеру/системе:
+// если нет ни параметра, ни куки (первый визит, поисковый робот), сайт обязан
+// открыться на английском, это жёсткое требование.
+// Параметр в адресе важнее куки: на нём держатся языковые версии страниц для
+// поисковиков (canonical и hreflang в SeoHead) и ссылки "поделиться" на
+// русскую версию.
 function resolveInitialLanguage() {
+  try {
+    const fromUrl = new URLSearchParams(window.location.search).get("lang");
+    if (fromUrl && SUPPORTED_LANGUAGES.includes(fromUrl)) {
+      return fromUrl;
+    }
+  } catch {
+    // нет window/location — просто идём дальше к куке
+  }
   const fromCookie = Cookies.get(LANGUAGE_COOKIE);
   if (fromCookie && SUPPORTED_LANGUAGES.includes(fromCookie)) {
     return fromCookie;

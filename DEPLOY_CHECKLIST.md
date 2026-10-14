@@ -1,12 +1,23 @@
 # Чек-лист перед деплоем it_hlp
 
-## 1. Домен (заглушка it-hlp.ru → реальный)
+## 1. Домен и SEO (рабочий домен — `it-hlp.com`)
 
-Поменять в ДВУХ местах — они не связаны друг с другом, поменять только одно недостаточно:
+Если домен когда-нибудь поменяется, его нужно обновить в нескольких местах, они не связаны друг с другом:
 
-- `hlp_react/src/seoConfig.js` — `SITE_BASE_URL` (используется в canonical, og:url, JSON-LD)
-- `backend_fastapi/app/config.py` — `site_base_url` (используется в `/sitemap.xml`), лучше переопределить через `.env`, а не менять дефолт в коде
-- `hlp_react/public/robots.txt` — строка `Sitemap: https://it-hlp.ru/sitemap.xml` меняется руками, файл статичный
+- `hlp_react/src/seoConfig.js` — `SITE_BASE_URL` (canonical, hreflang, og:url, JSON-LD)
+- `backend_fastapi/app/config.py` — `site_base_url` (адреса в `/sitemap.xml`); на сервере переопределяется переменной `SITE_BASE_URL` в `backend_fastapi/.env`
+- `hlp_react/public/robots.txt` — строка `Sitemap: https://it-hlp.com/sitemap.xml`, файл статичный
+- `hlp_react/index.html` — адрес картинки в `og:image` и `twitter:image` (файл `hlp_react/public/og-image.png`)
+- `deploy/nginx/user_conf.d/site.conf` — `server_name`, пути сертификата и редирект `www` → основной домен
+
+После изменения nginx-конфигов на сервере проверьте конфиг и перечитайте его, не перезапуская контейнер:
+
+```
+docker compose --env-file .env.prod -f docker-compose.prod.yml exec nginx-certbot nginx -t
+docker compose --env-file .env.prod -f docker-compose.prod.yml exec nginx-certbot nginx -s reload
+```
+
+Проверка после деплоя: `https://it-hlp.com/sitemap.xml` отдаёт XML (а не HTML-страницу сайта), `https://it-hlp.com/robots.txt` — текст с адресом sitemap.
 
 ## 2. Бэкенд — переменные окружения (`.env`)
 

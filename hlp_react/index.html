@@ -28,6 +28,16 @@
       referrerpolicy="no-referrer"
     />
 
+    <!-- Картинка для превью ссылки в соцсетях и мессенджерах. Статично, а не в
+         SeoHead: краулеры соцсетей и мессенджеров не выполняют JS и видят
+         только этот HTML. Остальные og:/twitter: теги ставит SeoHead (для тех,
+         кто JS выполняет); картинку здесь ставим только один раз, чтобы не
+         получить дубль. -->
+    <meta property="og:image" content="https://it-hlp.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:image" content="https://it-hlp.com/og-image.png" />
+
     <title>it_hlp</title>
   </head>
   <body>
