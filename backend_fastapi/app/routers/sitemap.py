@@ -55,7 +55,9 @@ def _url_entries(path: str, *, has_en: bool = True, lastmod: str | None = None) 
     ]
 
 
-@router.get("/sitemap.xml")
+# GET и HEAD: FastAPI сам HEAD для @router.get не добавляет, а curl -I и часть
+# проверялок шлют именно его — без этого они получали бы 405.
+@router.api_route("/sitemap.xml", methods=["GET", "HEAD"])
 def sitemap(db: Session = Depends(get_db)):
     """Генерируется на лету из текущей БД (без кэша — трафика на sitemap.xml
     мало, а актуальность важнее). Отдаёт полный urlset: статичные страницы +
